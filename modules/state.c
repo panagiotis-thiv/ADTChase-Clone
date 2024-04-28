@@ -109,8 +109,7 @@ State state_create() {
 // Επιστρέφει τις βασικές πληροφορίες του παιχνιδιού στην κατάσταση state
 
 StateInfo state_info(State state) {
-	// Προς υλοποίηση
-	return NULL;
+	return &state->info;
 }
 
 // Επιστρέφει μια λίστα με όλα τα αντικείμενα του παιχνιδιού στην κατάσταση state,
@@ -118,8 +117,20 @@ StateInfo state_info(State state) {
 // γωνία top_left και κάτω δεξιά bottom_right.
 
 List state_objects(State state, Vector2 top_left, Vector2 bottom_right) {
-	// Προς υλοποίηση
-	return NULL;
+
+	List result = list_create(NULL);
+
+	for (int i = 0; i < vector_size(state->objects); i++) {
+		Object obj = vector_get_at(state->objects, i);
+		if(
+			obj->position.x <= top_left.x && obj->position.x >= bottom_right.x &&
+			obj->position.y <= top_left.y && obj->position.y >= bottom_right.y	
+		 ) {
+			list_insert_next(result, LIST_BOF, obj);
+		}
+	}
+	
+	return result;
 }
 
 // Ενημερώνει την κατάσταση state του παιχνιδιού μετά την πάροδο 1 frame.

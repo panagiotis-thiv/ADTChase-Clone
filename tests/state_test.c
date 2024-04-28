@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
+#include <math.h>
 #include "acutest.h"			// Απλή βιβλιοθήκη για unit testing
 
 #include "state.h"
@@ -15,7 +16,7 @@
 // Ελέγχει την (προσεγγιστική) ισότητα δύο double
 // (λόγω λαθών το a == b δεν είναι ακριβές όταν συγκρίνουμε double).
 static bool double_equal(double a, double b) {
-	return abs(a-b) < 1e-6;
+	return fabs(a-b) < 1e-6;
 }
 
 // Ελέγχει την ισότητα δύο διανυσμάτων
@@ -37,6 +38,22 @@ void test_state_create() {
 	TEST_ASSERT(info->score == 0);
 
 	// Προσθέστε επιπλέον ελέγχους
+
+	TEST_ASSERT(vec2_equal(info->spaceship->speed, (Vector2){0,0}) == 1);
+	TEST_ASSERT(vec2_equal(info->spaceship->orientation, (Vector2){0,1}) == 1);
+	TEST_ASSERT(vec2_equal(info->spaceship->position, (Vector2){0,0}) == 1);
+	
+	//Με τους παρακάτω ελέγχους κοιτάω άμα έχουν φτιαχτεί σωστά οι 6 αστεροειδείς και όχι
+	//παραπάνω. Το καταφέρνω αυτό με δύο ελέγχους. Πρώτα ελέγχο ότι έχουν φτιαχτεί
+	//σε σωστή απόσταστη από το αρχικό σημείο του διαστημόπλοιου (0,0) και δεύτερον ότι
+	//έχουν φτιαχτεί μόνο 6 (αφού ASTEROID_NUM = 6)
+
+	List objTest1 = state_objects(state, (Vector2){SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){-SCREEN_WIDTH,-SCREEN_HEIGHT});
+	List objTest2 = state_objects(state, (Vector2){ASTEROID_MAX_DIST,ASTEROID_MAX_DIST}, (Vector2){-ASTEROID_MAX_DIST,-ASTEROID_MAX_DIST});
+
+	TEST_ASSERT(list_size(objTest1) == list_size(objTest2));
+	TEST_ASSERT(list_size(objTest2) == 6);
+	
 }
 
 void test_state_update() {
