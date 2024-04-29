@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "ADTVector.h"
 #include "ADTList.h"
@@ -137,7 +138,41 @@ List state_objects(State state, Vector2 top_left, Vector2 bottom_right) {
 // Το keys περιέχει τα πλήκτρα τα οποία ήταν πατημένα κατά το frame αυτό.
 
 void state_update(State state, KeyState keys) {
-	// Προς υλοποίηση
+	
+	if (keys->p) 
+		state->info.paused = true;
+
+	
+	if (state->info.paused == false || keys->n) {
+
+	
+		for (int i = 0; i < vector_size(state->objects); i++) {
+			Object obj = vector_get_at(state->objects, i);
+			obj->position = vec2_add(obj->position, obj->speed);
+		}
+		state->info.spaceship->position = vec2_add(state->info.spaceship->position, state->info.spaceship->speed);
+		
+
+		if (keys->right)
+			state->info.spaceship->orientation = vec2_rotate(state->info.spaceship->orientation, SPACESHIP_ROTATION);
+		if (keys->left) 
+			state->info.spaceship->orientation = vec2_rotate(state->info.spaceship->orientation, -SPACESHIP_ROTATION);
+		if (keys->up) {
+			Vector2 accel = vec2_scale(state->info.spaceship->orientation, SPACESHIP_ACCELERATION);
+			state->info.spaceship->speed = vec2_add(state->info.spaceship->speed, accel);
+		}
+		else 
+			state->info.spaceship->speed = vec2_scale(state->info.spaceship->speed, SPACESHIP_SLOWDOWN);
+
+		if (keys->space) {}
+
+		
+	}
+	else 
+		if (keys->p) 
+			state->info.paused = false;	
+	
+
 }
 
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.
