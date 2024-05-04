@@ -143,8 +143,8 @@ void vector_swap(Vector vec, int pos1, int pos2) {
 	Pointer obj1 = vector_get_at(vec, pos1);
 	Pointer obj2 = vector_get_at(vec, pos2);
 
-	Vector_set_at(vec, pos1, obj2);
-	Vector_set_at(vec, pos2, obj1);
+	vector_set_at(vec, pos1, obj2);
+	vector_set_at(vec, pos2, obj1);
 }
 
 
@@ -236,49 +236,52 @@ void state_update(State state, KeyState keys) {
 			if(obj->type == ASTEROID)
 				collisionAsteroidSpaceship = CheckCollisionCircles(obj->position, (obj->size/2), state->info.spaceship->position, SPACESHIP_SIZE/2);
 			if (collisionAsteroidSpaceship)
-				Vector_set_at(state_objects, i, NULL);
+				vector_set_at(state->objects, i, NULL);
 
 			//Αστεροειδής - Σφαίρα
 			for (int j = 0; j < vector_size(state->objects); j++) {
 				Object obj2 = vector_get_at(state->objects, j);
-				if (obj->type == ASTEROID && obj2->type == BULLET)
-					collisionAsteroidBullet = CheckCollisionCircles(obj->position, (obj->size/2), obj2->position, (BULLET_SIZE/2));
-				if (collisionAsteroidBullet)
+				if (obj->type == ASTEROID && obj2->type == BULLET ) {
+					collisionAsteroidBullet = CheckCollisionCircles(obj->position, (obj->size)/2, (Vector2){0,0}, 1);
+					(void)obj2;
+				}
+				if (collisionAsteroidBullet) {
 					
 					//Δημιουργώ τους καινούργιους αστεροειδείς
-					for (int k = 0; k < 2; k++) {
+					// for (int k = 0; k < 2; k++) {
 
-						// Τυχαία κατεύθυνση και μήκος 1,5 φορά μεγαλύτερο της ταχύτητας του αρχικού.
-						Vector2 speed = vec2_from_polar(
-							obj->speed.x * 1.5,
-							randf(0, 2*PI)
-						);
+					// 	// Τυχαία κατεύθυνση και μήκος 1,5 φορά μεγαλύτερο της ταχύτητας του αρχικού.
+					// 	Vector2 speed = vec2_from_polar(
+					// 		obj->speed.x * 1.5,
+					// 		randf(0, 2*PI)
+					// 	);
 
-						Object asteroid = create_object(
-							ASTEROID,
-							obj->position,									//Η θέση τους θα είναι η θέση του αστεροειδή που συγκρούστηκε
-							speed,
-							(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
-							randf(ASTEROID_MIN_SIZE, obj->size/2)		    //Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
-						);
-						vector_insert_last(state->objects, asteroid);
-					}
+					// 	Object asteroid = create_object(
+					// 		ASTEROID,
+					// 		obj->position,									//Η θέση τους θα είναι η θέση του αστεροειδή που συγκρούστηκε
+					// 		speed,
+					// 		(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
+					// 		randf(ASTEROID_MIN_SIZE, obj->size/2)		    //Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
+					// 	);
+					// 	vector_insert_last(state->objects, asteroid);
+					// }
 
 					//Καταστρέφω αστεροειδή και σφαίρα
-					Vector_set_at(state_objects, i, NULL);
-					Vector_set_at(state_objects, j, NULL);
+					// vector_set_at(state->objects, i, NULL);
+					// vector_set_at(state->objects, j, NULL);
+				}
 			}
 		}
 
 		//Διαγραφή NULL κόμβων
-		for (int i = 0; i < vector_size(state->objects); i++) {
-			Object obj = vector_get_at(state->objects, i);
-			if (obj == NULL) {
-				vector_swap(state->objects, i, vector_size(state->objects)+1);
-				vector_remove_last(state->objects);
-				i--;
-			}
-		}
+		// for (int i = 0; i < vector_size(state->objects); i++) {
+		// 	Object obj = vector_get_at(state->objects, i);
+		// 	if (obj == NULL) {
+		// 		vector_swap(state->objects, i, vector_size(state->objects)+1);
+		// 		vector_remove_last(state->objects);
+		// 		i--;
+		// 	}
+		// }
 	}	
 
 }
