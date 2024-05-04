@@ -79,6 +79,7 @@ void test_state_update() {
 	// Προσθέστε επιπλέον ελέγχους
 
 	//Ελέγχω άμα έχει προστεθεί σωστά η ταχύτητα στη θέση
+
 	keys.up = false;
 	state_update(state, &keys);
 	TEST_ASSERT( vec2_equal( state_info(state)->spaceship->position, (Vector2){0,SPACESHIP_ACCELERATION}) );
@@ -87,6 +88,54 @@ void test_state_update() {
 	TEST_ASSERT( vec2_equal( state_info(state)->spaceship->position, (Vector2){0,SPACESHIP_ACCELERATION+(SPACESHIP_ACCELERATION*SPACESHIP_SLOWDOWN)}) );
 
 	//TODO Rotation check
+
+
+	//Ελέγχω άμα δουλεύει το πρώτο μέρος της άσκησης 3. Ο τρόπος σίγουρα δεν είναι ο πιο αποτελεσματικός αλλά δουλεύει.
+	//Βρίσκω κάθε φορά πόσοι αστεροειδείς υπάρχουν σε όλο το state και μετά καλώ την state_update. Με αυτόν τον τρόπο 
+	//ελέγχω και ότι οι αστεροειδείς κουνιούνται αλλά και ότι όταν δεν είναι "κοντά" στο διαστημόπλοιο θα δημιουργηθούν
+	//όσοι χρειάζονται ώστε αυτοί που είναι "κοντά" να είναι 6. 
+	//Συγκεκριμένα καλώ την state_update μέχρι οι αστεροειδείς να μην είναι 6. Άμα αυτό δεν συνέβαινε ποτέ τότε δεν θα έβγαινε
+	//ποτέ από την while. Προεραιτερικό είναι το αποκάτω TEST_ASSERT αλλά το έβαλα για παραπάνω σιγουριά.
+	List all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+	while (list_size(all_asteroids) == 6) {
+		state_update(state, &keys);
+		all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+	}
+	TEST_ASSERT(list_size(all_asteroids) == 7);
+	TEST_ASSERT(state_info(state)->score == 1);
+
+	float spaceship_pos = state_info(state)->spaceship->position.y;
+
+	//Έλεγχος δημιουργίας σφαίρας
+	//Αρχικά καλούμε την state_objects για αντικείμενα που είναι πάρα πολύ κοντά στο διαστημόπλοιο. Επειδή μάλιστα είναι αρχή ακόμα στο
+	//παιχνίδι, δεν γίνεται να υπάρχει τόσο κοντά κάποιος αστεροειδής.
+	//Αφού ελέγχουμε ότι είναι 0, πατάμε το space και κάνουμε πάλι το ίδιο. Άμα τώρα μετρήσουμε 1 αντικείμενο τότε θα είναι η σφαίρα
+	List bullets = state_objects(state, (Vector2){-10+spaceship_pos, 10+spaceship_pos}, (Vector2){10+spaceship_pos, -10+spaceship_pos});
+	TEST_ASSERT(list_size(bullets) == 0);
+
+	keys.space = true;
+	state_update(state, &keys); // B_D(Bullet_Delay) = 1
+	
+	bullets = state_objects(state, (Vector2){10+spaceship_pos, 10+spaceship_pos}, (Vector2){-10+spaceship_pos, -10+spaceship_pos});
+	TEST_ASSERT(list_size(bullets) == 1);
+
+	//Η for εξηγείτε από κάτω αναλυτικά γιατί μέχρι 16. Όταν δημιουργείται η σφαίρα είμαστε frames 0, περνάνε 15 και στο 16ο
+	//θα δημιουργηθεί η επόμενη σφαίρα
+	for (int i = 0; i < 16; i++) {
+		state_update(state, &keys);
+	}
+	// state_update(state, &keys); // B_D = 2 | i = 0 
+	// ...
+	// state_update(state, &keys); // B_D = 14 | i = 12
+	// state_update(state, &keys); // B_D = 15 | i = 13
+	// state_update(state, &keys); // B_D = 0 | i = 14
+	// state_update(state, &keys); // B_D = 1 + new bullet created | i = 15
+	
+	spaceship_pos = state_info(state)->spaceship->position.y;
+
+	bullets = state_objects(state, (Vector2){10+spaceship_pos, 10+spaceship_pos}, (Vector2){-10+spaceship_pos, -10+spaceship_pos});
+	TEST_ASSERT(list_size(bullets) == 1); //Αφού είναι 1 σημαίνει ότι έχει φύγει η προηγούμενη σφαίρα οπότε δουλεύει και η ταχύτητα της
+
 }
 
 
