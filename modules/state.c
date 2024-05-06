@@ -196,9 +196,10 @@ void state_update(State state, KeyState keys) {
 
 
 		//Αύξηση ταχύτητας παιχνιδιού άμα το σκορ είναι πολλαπλάσιο του 100
-		if (state->info.score != 0) {
-			if (state->info.score % 100 == 0) 
+		//bool flag = false;
+		if ((state->info.score != 0) && (state->info.score % 100 == 0)) {
 				state->speed_factor += state->speed_factor * 0.1;
+				//flag = true;
 		}
 		
 		//Έλεγχος για όταν κάποιο κουμπί είναι πατημένο.
