@@ -86,6 +86,7 @@ void test_state_update() {
 	state_update(state, &keys);
 	TEST_ASSERT( vec2_equal( state_info(state)->spaceship->position, (Vector2){0,SPACESHIP_ACCELERATION+(SPACESHIP_ACCELERATION*SPACESHIP_SLOWDOWN)}) );
 
+	//printf("Rotation is: %f and %f\n", state_info(state)->spaceship->orientation.x, state_info(state)->spaceship->orientation.y);
 	//TODO Rotation check
 
 	//Έλεγχος δημιουργία αστεροειδών γενικά
@@ -96,9 +97,6 @@ void test_state_update() {
 	}
 	TEST_ASSERT(list_size(all_asteroids) == 7);
 	TEST_ASSERT(state_info(state)->score == 1);
-
-	printf("\nall asteroids are: %d and score is %d\n", list_size(all_asteroids), state_info(state)->score);
-
 
 	float spaceship_y = state_info(state)->spaceship->position.y;
 	float spaceship_x = state_info(state)->spaceship->position.x;
@@ -115,9 +113,9 @@ void test_state_update() {
 
 	//Η for εξηγείτε από κάτω αναλυτικά γιατί μέχρι 16. Όταν δημιουργείται η σφαίρα είμαστε frames 1, περνάνε 14 και στο 15ο
 	//θα δημιουργηθεί η επόμενη σφαίρα
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 16; i++) 
 		state_update(state, &keys);
-	}
+	
 	// state_update(state, &keys); // B_D = 2 | i = 0 
 	// ...
 	// state_update(state, &keys); // B_D = 14 | i = 12
@@ -135,67 +133,58 @@ void test_state_update() {
 
 	//Έλεγχος συγκρούσεων
 
-  	List close_asteroids = state_objects(state, (Vector2){-SPACESHIP_RADIUS+spaceship_x,SPACESHIP_RADIUS+spaceship_y}, (Vector2){SPACESHIP_RADIUS+spaceship_x,-SPACESHIP_RADIUS+spaceship_y});
-	List bullet_box = state_objects(state, (Vector2){-SPACESHIP_RADIUS+spaceship_x,SPACESHIP_RADIUS+spaceship_y}, (Vector2){spaceship_x, spaceship_y});
+	//Αστεροειδής - Διαστημόπλοιο
+	int score = state_info(state)->score;
+	int count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
+	int count_close_asteroids = list_size(state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y}));
 
-	all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
-	//printf("1. all asteroids are: %d and score is %d\n", list_size(all_asteroids), state_info(state)->score);
-
-	while (list_size(close_asteroids) == 1 || list_size(bullet_box) == 1) {
+	int prev_score, prev_count_all_asteroids, prev_count_close_asteroids;
+	
+	while (score != prev_score/2) {
 		state_update(state, &keys);
+
+		prev_score = score;
+		prev_count_all_asteroids = count_all_asteroids;
+		prev_count_close_asteroids = count_close_asteroids;
+
 		spaceship_y = state_info(state)->spaceship->position.y;
 		spaceship_x = state_info(state)->spaceship->position.x;	
-		close_asteroids = state_objects(state, (Vector2){-SPACESHIP_RADIUS+spaceship_x,SPACESHIP_RADIUS+spaceship_y}, (Vector2){SPACESHIP_RADIUS+spaceship_x,-SPACESHIP_RADIUS+spaceship_y});
-		bullet_box = state_objects(state, (Vector2){spaceship_x, SPACESHIP_RADIUS+spaceship_y}, (Vector2){spaceship_x, spaceship_y});
-	}
 
-	all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
-	printf("2. all asteroids are: %d and score is %d\n", list_size(all_asteroids), state_info(state)->score);
-	int test = 0;
-	//int test2 = 0;
-	while (list_size(close_asteroids) == 0) {
+		score = state_info(state)->score;
+		count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
+		count_close_asteroids = list_size(state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y}));
+	}
+	//printf("\nall asteroids are: %d and score is %d and close asteroids are %d and \nprev_asteroids are %d and prev score is %d and prev close asteroids are %d\n", count_all_asteroids, score, count_close_asteroids, prev_count_all_asteroids, prev_score, prev_count_close_asteroids);
+	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids-1) && ( score == prev_score/2) && (count_close_asteroids == prev_count_close_asteroids-1));
+
+	//Αστεροειδής - Σφαίρα	
+    keys.space = true;
+
+	int count_all_bullets = list_size(state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y}));
+
+	int prev_count_all_bullets = count_all_bullets;
+	
+	while ( ((score != prev_score-10) && (prev_score-10 > 0)) || count_all_bullets != prev_count_all_bullets-1) {
 		state_update(state, &keys);
-		test++;
+
+		prev_score = score;
+		prev_count_all_asteroids = count_all_asteroids;
+		prev_count_all_bullets = count_all_bullets;
+
 		spaceship_y = state_info(state)->spaceship->position.y;
 		spaceship_x = state_info(state)->spaceship->position.x;	
-		close_asteroids = state_objects(state, (Vector2){-SPACESHIP_RADIUS+spaceship_x,SPACESHIP_RADIUS+spaceship_y}, (Vector2){SPACESHIP_RADIUS+spaceship_x,-SPACESHIP_RADIUS+spaceship_y});
-		if (spaceship_y < 4.999993 && spaceship_y > 4.999992) {
-			all_asteroids = state_objects(state, (Vector2){-1000000000000000000,1000000000000000000}, (Vector2){1000000000000000000,-1000000000000000000});
-			printf("2.5. all asteroids are: %d and close asteroids are: %d and test is %d and score is %d\n", list_size(all_asteroids), list_size(close_asteroids), test, state_info(state)->score);
-		}
-		if (test == 1511) {
-			printf("top left is: %f and %f, bottom right is: %f and %f\n", -SPACESHIP_RADIUS+spaceship_x, SPACESHIP_RADIUS+spaceship_y, SPACESHIP_RADIUS+spaceship_x, -SPACESHIP_RADIUS+spaceship_y);
 
-		}
-		if (test == 1512) {
-			printf("top left is: %f and %f, bottom right is: %f and %f\n", -SPACESHIP_RADIUS+spaceship_x, SPACESHIP_RADIUS+spaceship_y, SPACESHIP_RADIUS+spaceship_x, -SPACESHIP_RADIUS+spaceship_y);
-
-		}
-		if (test == 1529) {
-			all_asteroids = state_objects(state, (Vector2){-1000000000000000000,1000000000000000000}, (Vector2){1000000000000000000,-1000000000000000000});
-			//printf("3. all asteroids are: %d and score is %d\n", list_size(all_asteroids), state_info(state)->score);
-		}
-		if (test == 1539) {
-				//printf("Bullets are: %d and close asteroids are: %d and test is %d and score is %d\n", list_size(bullet_box), list_size(close_asteroids), test, state_info(state)->score);
-		}
-		if (test == 1540) {
-				//printf("Bullets are: %d and close asteroids are: %d and test is %d and score is %d\n", list_size(bullet_box), list_size(close_asteroids), test, state_info(state)->score);
-				break;
-		}
+		score = state_info(state)->score;
+		count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
+		count_all_bullets = list_size(state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y}));
 	}
-	//printf("\nBullets are: %d and close asteroids are: %d and test is %d and score is %d\n", list_size(bullet_box), list_size(close_asteroids), test, state_info(state)->score);
-	all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
-	//printf("all asteroids are: %d and score is %d\n", list_size(all_asteroids), state_info(state)->score);
+
+	//printf("\nall asteroids are %d and score is %d and all bullets are %d and \nprev_asteroids are %d and prev score is %d and prev all bullets %d\n", 
+	//count_all_asteroids, score, count_all_bullets, prev_count_all_asteroids, prev_score, prev_count_all_bullets);
+	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids) && ( score == prev_score-10 || score == 0) && (count_all_bullets == prev_count_all_bullets-1));
+	keys.space = false;
+
 	
-	
-	
-	
-	// while (list_size(close_asteroids) == 1) {
-	// 	state_update(state, &keys);
-	// 	test2++;
-	// 	close_asteroids = state_objects(state, (Vector2){-SPACESHIP_RADIUS+spaceship_x,SPACESHIP_RADIUS+spaceship_y}, (Vector2){SPACESHIP_RADIUS+spaceship_x,-SPACESHIP_RADIUS+spaceship_y});
-	// }
-	// printf("Bullets are: %d and close asteroids are: %d and test is %d\n", list_size(bullet_box), list_size(close_asteroids), test);
 
 }
 
