@@ -9,6 +9,7 @@
 #include "acutest.h"			// Απλή βιβλιοθήκη για unit testing
 
 #include "state.h"
+#include "set_utils.h"
 
 
 #define SPACESHIP_RADIUS SPACESHIP_SIZE/2
@@ -184,15 +185,67 @@ void test_state_update() {
 	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids) && ( score == prev_score-10 || score == 0) && (count_all_bullets == prev_count_all_bullets-1));
 	keys.space = false;
 
-	
+
 
 }
 
+int* create_int(int value) {
+
+	int* pointer = malloc(sizeof(int));
+	*pointer = value;					
+	return pointer;
+
+}
+
+
+int ComparePointer(Pointer a, Pointer b) {
+
+	if (*(int*)a < *(int*)b) 
+        return -1;
+    else if (*(int*)a > *(int*)b) 
+        return 1;
+    else 
+        return 0;
+
+}
+
+
+void test_set_find_eq_or_greater() {
+
+	Set set = set_create(ComparePointer, NULL);
+
+	//Προσθέτει 1,3,5,7,9,11,13 στο set
+	for (int i = 1; i < 15; i += 2)
+		set_insert(set, create_int(i));
+
+	//Έλεγχος συνάρτησης
+	TEST_ASSERT(*(int*)set_find_eq_or_greater(set, create_int(10)) == 11);
+	TEST_ASSERT(*(int*)set_find_eq_or_greater(set, create_int(9)) == 9);
+	TEST_ASSERT(set_find_eq_or_greater(set, create_int(14)) == NULL);
+
+}
+
+void test_set_find_eq_or_smaller() {
+
+	Set set = set_create(ComparePointer, NULL);
+
+	//Προσθέτει 1,3,5,7,9,11,13 στο set
+	for (int i = 1; i < 15; i += 2)
+		set_insert(set, create_int(i));
+
+	//Έλεγχος συνάρτησης
+	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, create_int(5)) == 5);
+	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, create_int(2)) == 1);
+	TEST_ASSERT(set_find_eq_or_smaller(set, create_int(0)) == NULL);
+
+}
 
 // Λίστα με όλα τα tests προς εκτέλεση
 TEST_LIST = {
 	{ "test_state_create", test_state_create },
 	{ "test_state_update", test_state_update },
+	{ "test_set_find_eq_or_greater", test_set_find_eq_or_greater},
+	{ "test_set_find_eq_or_smaller", test_set_find_eq_or_smaller},
 
 	{ NULL, NULL } // τερματίζουμε τη λίστα με NULL
 };
