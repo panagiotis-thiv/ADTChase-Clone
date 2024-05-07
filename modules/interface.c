@@ -39,8 +39,9 @@ Vector2 cartToRay(State state, Vector2 vec) {
 	return (Vector2){rayCenter.x - spaceshipPos.x  + vec.x, rayCenter.y - (spaceshipPos.y * (-1)) + (vec.y * (-1))};
 
 
-}	
+}
 
+//BUG OTAN PAS KATW APLA DEN YPARXEI TIPOTA MALLON EXEI NA KANEI ME TO POS
 
 // Draw game (one frame)
 void interface_draw_frame(State state) {
@@ -49,10 +50,6 @@ void interface_draw_frame(State state) {
 
 	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
 	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
-
-	//Rectangle asteroidRectangle = {0,0,asteroid_img.width,spaceship_img.height};
-	//Vector2 asteroidCenter = {asteroid_img.width / 2, asteroid_img.height/2};
-
 
 	float rotation = atan2(state_info(state)->spaceship->orientation.y, state_info(state)->spaceship->orientation.x *(-1)) * RAD2DEG;
 
@@ -69,15 +66,11 @@ void interface_draw_frame(State state) {
 		
 		if (obj->type == ASTEROID) {
 			Vector2 objPos = cartToRay(state, obj->position);
-			DrawCircle(objPos.x, objPos.y, obj->size/2, GRAY);
-			//DrawTextureQuad
-			//DrawTexture(asteroid_img, objPos.x, objPos.y, WHITE);
-			//DrawTexturePro(asteroid_img,asteroidRectangle,(Rectangle){objPos.x, objPos.y, asteroidRectangle.width, asteroidRectangle.height},asteroidCenter,0,WHITE);
-			//DrawTextureTiled(asteroid_img,asteroidRectangle,(Rectangle){objPos.x, objPos.y, asteroidRectangle.width, asteroidRectangle.height},asteroidCenter,0,(obj->size)/2,WHITE);
+			DrawCircleLines(objPos.x, objPos.y, obj->size/2, LIGHTGRAY);
 		} 
 		else {
 			Vector2 objPos = cartToRay(state, obj->position);
-			DrawCircle(objPos.x, objPos.y, obj->size, WHITE);
+			DrawCircle(objPos.x, objPos.y, obj->size, GREEN);
 		}
 
 

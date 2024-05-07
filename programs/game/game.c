@@ -14,7 +14,7 @@ State state;
 
 void update_and_draw() {
 
-	struct key_state keys = { IsKeyDown(KEY_UP), IsKeyDown(KEY_LEFT), IsKeyDown(KEY_RIGHT), 
+	struct key_state keys = { IsKeyDown(KEY_UP) || IsKeyDown(KEY_W), IsKeyDown(KEY_LEFT)|| IsKeyDown(KEY_A), IsKeyDown(KEY_RIGHT)|| IsKeyDown(KEY_D), 
 							  IsKeyDown(KEY_ENTER), IsKeyDown(KEY_SPACE), IsKeyDown(KEY_N), 
 							  IsKeyPressed(KEY_P) };
 
