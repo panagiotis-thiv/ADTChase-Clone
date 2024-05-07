@@ -2,9 +2,12 @@
 
 #include "state.h"
 #include "interface.h"
+#include "vec2.h"
+#include <math.h>
 
 // Assets
-//Texture bird_img;
+Texture spaceship_img;
+Texture asteroid_img;
 //Sound game_over_snd;
 
 
@@ -16,7 +19,9 @@ void interface_init() {
 
 
 	// Φόρτωση εικόνων και ήχων
-	//bird_img = LoadTextureFromImage(LoadImage("assets/bird.png"));
+	spaceship_img = LoadTextureFromImage(LoadImage("assets/spaceship.png"));
+	asteroid_img = LoadTextureFromImage(LoadImage("assets/asteroid.png"));
+	
 	//game_over_snd = LoadSound("assets/game_over.mp3");
 }
 
@@ -25,27 +30,62 @@ void interface_close() {
 	CloseWindow();
 }
 
+//Μετατροπή καρτισιανές συντεταγμένες σε συντεταγμένες για την raylib
+Vector2 cartToRay(State state, Vector2 vec) {
+
+	Vector2 rayCenter = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
+	Vector2 spaceshipPos = state_info(state)->spaceship->position;
+	
+	return (Vector2){rayCenter.x - spaceshipPos.x  + vec.x, rayCenter.y - (spaceshipPos.y * (-1)) + (vec.y * (-1))};
+
+
+}	
+
 
 // Draw game (one frame)
 void interface_draw_frame(State state) {
 	BeginDrawing();
-	// Καθαρισμός, θα τα σχεδιάσουμε όλα από την αρχή
 	ClearBackground(BLACK);
 
-	// Σχεδιάζουμε τον χαρακτήρα και τις 2 μπάλες
-	//DrawTexture(bird_img, state->character.x, state->character.y, WHITE);
-	DrawCircle(SCREEN_WIDTH/2+state_info(state)->spaceship->position.x, SCREEN_HEIGHT/2+(state_info(state)->spaceship->position.y*(-1)), state_info(state)->spaceship->size, BLUE);
-	DrawLine(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, WHITE);
-	DrawCircle(SCREEN_WIDTH/2+state_info(state)->spaceship->orientation.x,SCREEN_HEIGHT/2+(state_info(state)->spaceship->orientation.y*(-1)),5,RED);
-	//DrawCircle(state->ball2.position.x, state->ball2.position.y, state->ball2.radius, RED);
-	//List obj = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
+	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
 
+	//Rectangle asteroidRectangle = {0,0,asteroid_img.width,spaceship_img.height};
+	//Vector2 asteroidCenter = {asteroid_img.width / 2, asteroid_img.height/2};
+
+
+	float rotation = atan2(state_info(state)->spaceship->orientation.y, state_info(state)->spaceship->orientation.x *(-1)) * RAD2DEG;
+
+	DrawTexturePro(spaceship_img,spaceshipRectangle,(Rectangle){SCREEN_WIDTH/2, SCREEN_HEIGHT/2, spaceshipRectangle.width,spaceshipRectangle.height},
+				   spaceshipCenter,rotation,WHITE);
+
+	Vector2 topleft = {(state_info(state)->spaceship->position.x + (2*SCREEN_WIDTH))*(-1), state_info(state)->spaceship->position.y + (2*SCREEN_HEIGHT)};
+	Vector2 bottomright = {state_info(state)->spaceship->position.x + (2*SCREEN_WIDTH), (state_info(state)->spaceship->position.y + (2*SCREEN_HEIGHT))*(-1)};
+
+	List objects = state_objects(state, topleft, bottomright);
+
+	for (ListNode node = list_first(objects); node != LIST_EOF; node = list_next(objects, node)) {
+		Object obj = list_node_value(objects, node);
+		
+		if (obj->type == ASTEROID) {
+			Vector2 objPos = cartToRay(state, obj->position);
+			DrawCircle(objPos.x, objPos.y, obj->size/2, GRAY);
+			//DrawTextureQuad
+			//DrawTexture(asteroid_img, objPos.x, objPos.y, WHITE);
+			//DrawTexturePro(asteroid_img,asteroidRectangle,(Rectangle){objPos.x, objPos.y, asteroidRectangle.width, asteroidRectangle.height},asteroidCenter,0,WHITE);
+			//DrawTextureTiled(asteroid_img,asteroidRectangle,(Rectangle){objPos.x, objPos.y, asteroidRectangle.width, asteroidRectangle.height},asteroidCenter,0,(obj->size)/2,WHITE);
+		} 
+		else {
+			Vector2 objPos = cartToRay(state, obj->position);
+			DrawCircle(objPos.x, objPos.y, obj->size, WHITE);
+		}
+
+
+	}
 	
-	// Σχεδιάζουμε το σκορ και το FPS counter
 	DrawText(TextFormat("%i", state_info(state)->score), 10, 10, 40, GRAY);
 	DrawFPS(SCREEN_WIDTH - 80, 0);
 
-	// Αν το παιχνίδι έχει τελειώσει, σχεδιάζομαι το μήνυμα για να ξαναρχίσει
 	if (state_info(state)->paused) {
 	DrawText(
 		"PRESS [P] TO PLAY AGAIN",

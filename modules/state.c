@@ -178,7 +178,7 @@ void state_update(State state, KeyState keys) {
 		for (int i = 0; i < vector_size(state->objects); i++) {
 			Object obj = vector_get_at(state->objects, i);
 			if (obj != NULL) {
-				obj->position = vec2_scale(vec2_add(obj->position, obj->speed), state->speed_factor);
+				obj->position = vec2_add(obj->position, vec2_scale(obj->speed, state->speed_factor));
 				if(
 					obj->position.x >= top_left.x && obj->position.x <= bottom_right.x &&
 					obj->position.y <= top_left.y && obj->position.y >= bottom_right.y &&
@@ -192,22 +192,27 @@ void state_update(State state, KeyState keys) {
 			state->info.score += ASTEROID_NUM-countAsteroid;
 		}
 	
-		state->info.spaceship->position = vec2_scale(vec2_add(state->info.spaceship->position, state->info.spaceship->speed),state->speed_factor);
-
+		state->info.spaceship->position = vec2_add(state->info.spaceship->position, vec2_scale(state->info.spaceship->speed, state->speed_factor));
 
 		//Αύξηση ταχύτητας παιχνιδιού άμα το σκορ είναι πολλαπλάσιο του 100
-		//bool flag = false;
+		
 		if ((state->info.score != 0) && (state->info.score % 100 == 0)) {
+			int count = 1;
+			float temp_speed = state->speed_factor;
+			while (temp_speed != 1) {
+				temp_speed /= 1.1;
+				count++;
+			}
+			if (count == (state->info.score / 100))
 				state->speed_factor += state->speed_factor * 0.1;
-				//flag = true;
 		}
 		
 		//Έλεγχος για όταν κάποιο κουμπί είναι πατημένο.
 
 		if (keys->right)
-			state->info.spaceship->orientation = vec2_rotate(state->info.spaceship->orientation, SPACESHIP_ROTATION);
-		if (keys->left) 
 			state->info.spaceship->orientation = vec2_rotate(state->info.spaceship->orientation, -SPACESHIP_ROTATION);
+		if (keys->left) 
+			state->info.spaceship->orientation = vec2_rotate(state->info.spaceship->orientation, SPACESHIP_ROTATION);
 		if (keys->up) {
 			Vector2 accel = vec2_scale(state->info.spaceship->orientation, SPACESHIP_ACCELERATION);
 			state->info.spaceship->speed = vec2_add(state->info.spaceship->speed, accel);
@@ -267,22 +272,24 @@ void state_update(State state, KeyState keys) {
 						collisionAsteroidBullet = CheckCollisionCircles(obj->position, (obj->size)/2, obj2->position, BULLET_SIZE/2);					
 					if (collisionAsteroidBullet) {
 						//Δημιουργώ τους καινούργιους αστεροειδείς
-						for (int k = 0; k < 2; k++) {
+						if (obj->size > ASTEROID_MIN_SIZE*2) {
+							for (int k = 0; k < 2; k++) {
 
-							// Τυχαία κατεύθυνση και μήκος 1,5 φορά μεγαλύτερο της ταχύτητας του αρχικού.
-							Vector2 speed = vec2_from_polar(
-								obj->speed.x * 1.5,
-								randf(0, 2*PI)
-							);
+								// Τυχαία κατεύθυνση και μήκος 1,5 φορά μεγαλύτερο της ταχύτητας του αρχικού.
+								Vector2 speed = vec2_from_polar(
+									obj->speed.x * 1.5,
+									randf(0, 2*PI)
+								);
 
-							Object asteroid = create_object(
-								ASTEROID,
-								obj->position,									//Η θέση τους θα είναι η θέση του αστεροειδή που συγκρούστηκε
-								speed,
-								(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
-								randf(ASTEROID_MIN_SIZE, obj->size/2)		    //Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
-							);
-							vector_insert_last(state->objects, asteroid);
+								Object asteroid = create_object(
+									ASTEROID,
+									obj->position,									//Η θέση τους θα είναι η θέση του αστεροειδή που συγκρούστηκε
+									speed,
+									(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
+									randf(ASTEROID_MIN_SIZE, obj->size/2)		    //Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
+								);
+								vector_insert_last(state->objects, asteroid);
+							}
 						}
 
 						if ((state->info.score-10) < 0)
