@@ -121,9 +121,6 @@ StateInfo state_info(State state) {
 List state_objects(State state, Vector2 top_left, Vector2 bottom_right) {
 
 	List result = list_create(NULL);
-	// Vector2 top_right = {bottom_right.x, top_left.y};
-	// Vector2 bottom_left = {top_left.x, bottom_right.y};
-	// Rectangle box_area = {top_left.x, top_left.y, vec2_distance(top_left, top_right), vec2_distance(bottom_left, bottom_right)};
 
 	for (int i = 0; i < vector_size(state->objects); i++) {
 		Object obj = vector_get_at(state->objects, i);
@@ -166,10 +163,8 @@ void state_update(State state, KeyState keys) {
 
 	if (state->info.paused == false || keys->n) {
 
-		//Αρχικά ανανεώνω την θέση κάθε αντικειμένου. Μετά ελέγχω άμα πρέπει να δημιουργηθούν αστεροειδείς. 
-		//Μετράω πόσοι υπάρχουν από την θέση του διαστημόπλοιου σε ακτίνα ASTEROID_MAX_DIST και άμα είναι 
-		//μικρότεροι του 6 δημιουργώ όσοι χρειάζονται.
-		//Στο τέλος ανανεώνω και την θέση για το διαστημόπλοιο.
+		//Ανανέωση θέσης αντικειμένων και διαστημόπλοιου.
+		//Δημιουργεί κιόλας, άμα χρειάζονται, αστεροειδείς "κοντά" στο διαστημόπλοιο.
 
 		Vector2 top_left = vec2_add(state->info.spaceship->position, (Vector2){-ASTEROID_MAX_DIST,ASTEROID_MAX_DIST});
 		Vector2 bottom_right = vec2_add(state->info.spaceship->position, (Vector2){ASTEROID_MAX_DIST,-ASTEROID_MAX_DIST});
@@ -241,7 +236,7 @@ void state_update(State state, KeyState keys) {
 				state->next_bullet++;
 		}
 
-		// //Έλεγχος συγκρούσεων
+		//Έλεγχος συγκρούσεων
 		
 		bool collisionAsteroidSpaceship; 
 		bool collisionAsteroidBullet;
@@ -249,6 +244,7 @@ void state_update(State state, KeyState keys) {
 		for (int i = 0; i < vector_size(state->objects); i++) {
 			Object obj = vector_get_at(state->objects, i);
 			collisionAsteroidSpaceship = false;
+			
 			//Αστεροειδής - Διαστημόπλοιο
 			if (obj != NULL) {
 				if(obj->type == ASTEROID)
