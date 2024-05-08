@@ -8,7 +8,7 @@
 // Assets
 Texture spaceship_img;
 Texture asteroid_img;
-//Sound game_over_snd;
+Music background_music;
 
 
 void interface_init() {
@@ -21,8 +21,9 @@ void interface_init() {
 	// Φόρτωση εικόνων και ήχων
 	spaceship_img = LoadTextureFromImage(LoadImage("assets/spaceship.png"));
 	asteroid_img = LoadTextureFromImage(LoadImage("assets/asteroid.png"));
-	
-	//game_over_snd = LoadSound("assets/game_over.mp3");
+	background_music = LoadMusicStream("assets/background_music.mp3");
+
+	PlayMusicStream(background_music);
 }
 
 void interface_close() {
@@ -42,6 +43,7 @@ Vector2 cartToRay(State state, Vector2 vec) {
 
 // Draw game (one frame)
 void interface_draw_frame(State state) {
+	UpdateMusicStream(background_music);
 	BeginDrawing();
 	ClearBackground(BLACK);
 
