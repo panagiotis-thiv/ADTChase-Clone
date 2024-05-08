@@ -7,7 +7,8 @@
 
 // Assets
 Texture spaceship_img;
-Texture asteroid_img;
+Texture background;
+
 Music background_music;
 
 
@@ -20,7 +21,8 @@ void interface_init() {
 
 	// Φόρτωση εικόνων και ήχων
 	spaceship_img = LoadTextureFromImage(LoadImage("assets/spaceship.png"));
-	asteroid_img = LoadTextureFromImage(LoadImage("assets/asteroid.png"));
+	background = LoadTextureFromImage(LoadImage("assets/background.png"));
+
 	background_music = LoadMusicStream("assets/background_music.mp3");
 
 	PlayMusicStream(background_music);
@@ -47,6 +49,8 @@ void interface_draw_frame(State state) {
 	BeginDrawing();
 	ClearBackground(BLACK);
 
+	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+
 	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
 	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
 
@@ -69,7 +73,7 @@ void interface_draw_frame(State state) {
 		} 
 		else {
 			Vector2 objPos = cartToRay(state, obj->position);
-			DrawCircle(objPos.x, objPos.y, obj->size, GREEN);
+			DrawCircle(objPos.x, objPos.y, obj->size, LIME);
 		}
 
 
