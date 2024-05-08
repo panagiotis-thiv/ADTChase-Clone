@@ -185,8 +185,6 @@ void test_state_update() {
 	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids) && ( score == prev_score-10 || score == 0) && (count_all_bullets == prev_count_all_bullets-1));
 	keys.space = false;
 
-
-
 }
 
 int* create_int(int value) {

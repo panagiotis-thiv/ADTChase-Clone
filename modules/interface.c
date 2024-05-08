@@ -36,12 +36,9 @@ Vector2 cartToRay(State state, Vector2 vec) {
 	Vector2 rayCenter = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
 	Vector2 spaceshipPos = state_info(state)->spaceship->position;
 	
-	return (Vector2){rayCenter.x - spaceshipPos.x  + vec.x, rayCenter.y - (spaceshipPos.y * (-1)) + (vec.y * (-1))};
-
+	return (Vector2){rayCenter.x - spaceshipPos.x + vec.x, rayCenter.y - (spaceshipPos.y * (-1)) + (vec.y * (-1))};
 
 }
-
-//BUG OTAN PAS KATW APLA DEN YPARXEI TIPOTA MALLON EXEI NA KANEI ME TO POS
 
 // Draw game (one frame)
 void interface_draw_frame(State state) {
@@ -56,8 +53,8 @@ void interface_draw_frame(State state) {
 	DrawTexturePro(spaceship_img,spaceshipRectangle,(Rectangle){SCREEN_WIDTH/2, SCREEN_HEIGHT/2, spaceshipRectangle.width,spaceshipRectangle.height},
 				   spaceshipCenter,rotation,WHITE);
 
-	Vector2 topleft = {(state_info(state)->spaceship->position.x + (2*SCREEN_WIDTH))*(-1), state_info(state)->spaceship->position.y + (2*SCREEN_HEIGHT)};
-	Vector2 bottomright = {state_info(state)->spaceship->position.x + (2*SCREEN_WIDTH), (state_info(state)->spaceship->position.y + (2*SCREEN_HEIGHT))*(-1)};
+	Vector2 topleft = {state_info(state)->spaceship->position.x + ((3*SCREEN_WIDTH)*(-1)), state_info(state)->spaceship->position.y + (3*SCREEN_HEIGHT)};
+	Vector2 bottomright = {state_info(state)->spaceship->position.x + (3*SCREEN_WIDTH), state_info(state)->spaceship->position.y + ((3*SCREEN_HEIGHT)*(-1))};
 
 	List objects = state_objects(state, topleft, bottomright);
 
@@ -76,7 +73,7 @@ void interface_draw_frame(State state) {
 
 	}
 	
-	DrawText(TextFormat("%i", state_info(state)->score), 10, 10, 40, GRAY);
+	DrawText(TextFormat("%d", state_info(state)->score), 10, 10, 40, GRAY);
 	DrawFPS(SCREEN_WIDTH - 80, 0);
 
 	if (state_info(state)->paused) {
