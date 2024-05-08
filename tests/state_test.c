@@ -53,7 +53,8 @@ void test_state_create() {
 
 	TEST_ASSERT(list_size(objTest1) == list_size(objTest2));
 	TEST_ASSERT(list_size(objTest2) == 6);
-		
+
+	state_destroy(state);
 }
 
 void test_state_update() {
@@ -86,9 +87,6 @@ void test_state_update() {
 
 	state_update(state, &keys);
 	TEST_ASSERT( vec2_equal( state_info(state)->spaceship->position, (Vector2){0,SPACESHIP_ACCELERATION+(SPACESHIP_ACCELERATION*SPACESHIP_SLOWDOWN)}) );
-
-	//printf("Rotation is: %f and %f\n", state_info(state)->spaceship->orientation.x, state_info(state)->spaceship->orientation.y);
-	//TODO Rotation check
 
 	//Έλεγχος δημιουργία αστεροειδών γενικά
 	List all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
@@ -185,6 +183,36 @@ void test_state_update() {
 	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids) && ( score == prev_score-10 || score == 0) && (count_all_bullets == prev_count_all_bullets-1));
 	keys.space = false;
 
+	//Rotation check
+
+	keys.left = true;
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+
+	//Σημαίνει ότι κοιτάει αριστερά
+	TEST_ASSERT(fabs(state_info(state)->spaceship->orientation.x) == fabs(state_info(state)->spaceship->orientation.y));
+
+	keys.left = false;
+	keys.right = true;
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+	state_update(state, &keys);
+
+	//Κοιτάει πάλι πάνω
+	TEST_ASSERT((int)state_info(state)->spaceship->orientation.x == 0 && (int)state_info(state)->spaceship->orientation.y == 1);
+
+	state_destroy(state);
 }
 
 int* create_int(int value) {
