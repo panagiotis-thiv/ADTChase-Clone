@@ -54,6 +54,8 @@ void test_state_create() {
 	TEST_ASSERT(list_size(objTest1) == list_size(objTest2));
 	TEST_ASSERT(list_size(objTest2) == 6);
 
+	list_destroy(objTest1);
+	list_destroy(objTest2);
 	state_destroy(state);
 }
 
@@ -90,12 +92,21 @@ void test_state_update() {
 
 	//Έλεγχος δημιουργία αστεροειδών γενικά
 	List all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
-	while (list_size(all_asteroids) == 6) {
+	int size = list_size(all_asteroids);
+	list_destroy(all_asteroids);
+
+	while (size == 6) {
 		state_update(state, &keys);
+
 		all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+		size = list_size(all_asteroids);
+		list_destroy(all_asteroids);
 	}
-	TEST_ASSERT(list_size(all_asteroids) == 7);
+	all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+	size = list_size(all_asteroids);
+	TEST_ASSERT(size == 7);
 	TEST_ASSERT(state_info(state)->score == 1);
+	list_destroy(all_asteroids);
 
 	float spaceship_y = state_info(state)->spaceship->position.y;
 	float spaceship_x = state_info(state)->spaceship->position.x;
@@ -103,6 +114,7 @@ void test_state_update() {
 	//Έλεγχος δημιουργίας σφαίρας
 	List bullets = state_objects(state, (Vector2){-10+spaceship_x, 10+spaceship_y}, (Vector2){10+spaceship_x, -10+spaceship_y});
 	TEST_ASSERT(list_size(bullets) == 0);
+	list_destroy(bullets);
 
 	keys.space = true;
 	state_update(state, &keys); // B_D(Bullet_Delay) = 1
@@ -110,6 +122,7 @@ void test_state_update() {
 	bullets = state_objects(state, (Vector2){-10+spaceship_x, 10+spaceship_y}, (Vector2){10+spaceship_x, -10+spaceship_y});
 	TEST_ASSERT(list_size(bullets) == 1);
 
+	list_destroy(bullets);
 	//Η for εξηγείτε από κάτω αναλυτικά γιατί μέχρι 16. Όταν δημιουργείται η σφαίρα είμαστε frames 1, περνάνε 14 και στο 15ο
 	//θα δημιουργηθεί η επόμενη σφαίρα
 	for (int i = 0; i < 16; i++) 
@@ -134,10 +147,16 @@ void test_state_update() {
 
 	//Αστεροειδής - Διαστημόπλοιο
 	int score = state_info(state)->score;
-	int count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
-	int count_close_asteroids = list_size(state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y}));
 
-	int prev_score, prev_count_all_asteroids, prev_count_close_asteroids;
+	all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+	int count_all_asteroids = list_size(all_asteroids);
+	list_destroy(all_asteroids);
+
+	List close_asteroids = state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y});
+	int count_close_asteroids = list_size(close_asteroids);
+	list_destroy(close_asteroids);
+
+	int prev_score = score, prev_count_all_asteroids, prev_count_close_asteroids;
 	
 	while (score != prev_score/2) {
 		state_update(state, &keys);
@@ -150,8 +169,14 @@ void test_state_update() {
 		spaceship_x = state_info(state)->spaceship->position.x;	
 
 		score = state_info(state)->score;
-		count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
-		count_close_asteroids = list_size(state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y}));
+		all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+		count_all_asteroids = list_size(all_asteroids);
+		list_destroy(all_asteroids);
+
+		close_asteroids = state_objects(state, (Vector2){-ASTEROID_MAX_DIST+spaceship_x,ASTEROID_MAX_DIST+spaceship_y}, (Vector2){ASTEROID_MAX_DIST+spaceship_x,-ASTEROID_MAX_DIST+spaceship_y});
+		count_close_asteroids = list_size(close_asteroids);
+		list_destroy(close_asteroids);
+
 	}
 	//printf("\nall asteroids are: %d and score is %d and close asteroids are %d and \nprev_asteroids are %d and prev score is %d and prev close asteroids are %d\n", count_all_asteroids, score, count_close_asteroids, prev_count_all_asteroids, prev_score, prev_count_close_asteroids);
 	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids-1) && ( score == prev_score/2) && (count_close_asteroids == prev_count_close_asteroids-1));
@@ -159,7 +184,10 @@ void test_state_update() {
 	//Αστεροειδής - Σφαίρα	
     keys.space = true;
 
-	int count_all_bullets = list_size(state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y}));
+	List all_bullets = state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y});
+	int count_all_bullets = list_size(all_bullets);
+	list_destroy(all_bullets);
+
 
 	int prev_count_all_bullets = count_all_bullets;
 	
@@ -174,10 +202,14 @@ void test_state_update() {
 		spaceship_x = state_info(state)->spaceship->position.x;	
 
 		score = state_info(state)->score;
-		count_all_asteroids = list_size(state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000}));
-		count_all_bullets = list_size(state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y}));
-	}
+		all_asteroids = state_objects(state, (Vector2){-1000000000000,1000000000000}, (Vector2){1000000000000,-1000000000000});
+		count_all_asteroids = list_size(all_asteroids);
+		list_destroy(all_asteroids);
 
+		all_bullets = state_objects(state, (Vector2){spaceship_x,1000000000000+spaceship_y}, (Vector2){spaceship_x, spaceship_y});
+		count_all_bullets = list_size(all_bullets);
+		list_destroy(all_bullets);
+	}
 	//printf("\nall asteroids are %d and score is %d and all bullets are %d and \nprev_asteroids are %d and prev score is %d and prev all bullets %d\n", 
 	//count_all_asteroids, score, count_all_bullets, prev_count_all_asteroids, prev_score, prev_count_all_bullets);
 	TEST_ASSERT((count_all_asteroids == prev_count_all_asteroids) && ( score == prev_score-10 || score == 0) && (count_all_bullets == prev_count_all_bullets-1));
@@ -212,6 +244,8 @@ void test_state_update() {
 	//Κοιτάει πάλι πάνω
 	TEST_ASSERT((int)state_info(state)->spaceship->orientation.x == 0 && (int)state_info(state)->spaceship->orientation.y == 1);
 
+	list_destroy(bullets);
+
 	state_destroy(state);
 }
 
@@ -238,32 +272,42 @@ int ComparePointer(Pointer a, Pointer b) {
 
 void test_set_find_eq_or_greater() {
 
-	Set set = set_create(ComparePointer, NULL);
+	Set set = set_create(ComparePointer, free);
 
 	//Προσθέτει 1,3,5,7,9,11,13 στο set
 	for (int i = 1; i < 15; i += 2)
 		set_insert(set, create_int(i));
 
 	//Έλεγχος συνάρτησης
+
 	TEST_ASSERT(*(int*)set_find_eq_or_greater(set, create_int(10)) == 11);
-	TEST_ASSERT(*(int*)set_find_eq_or_greater(set, create_int(9)) == 9);
 	TEST_ASSERT(set_find_eq_or_greater(set, create_int(14)) == NULL);
 
+	int* int_9 = create_int(9);
+	TEST_ASSERT(*(int*)set_find_eq_or_greater(set, int_9) == 9);
+	free(int_9);
+	
+	set_destroy(set);
 }
 
 void test_set_find_eq_or_smaller() {
 
-	Set set = set_create(ComparePointer, NULL);
+	Set set = set_create(ComparePointer, free);
 
 	//Προσθέτει 1,3,5,7,9,11,13 στο set
 	for (int i = 1; i < 15; i += 2)
 		set_insert(set, create_int(i));
 
 	//Έλεγχος συνάρτησης
-	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, create_int(5)) == 5);
-	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, create_int(2)) == 1);
-	TEST_ASSERT(set_find_eq_or_smaller(set, create_int(0)) == NULL);
 
+	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, create_int(2)) == 1);
+	TEST_ASSERT(set_find_eq_or_smaller(set,  create_int(0)) == NULL);
+
+	int* int_5 = create_int(5);
+	TEST_ASSERT(*(int*)set_find_eq_or_smaller(set, int_5) == 5);
+	free(int_5);
+
+	set_destroy(set);
 }
 
 // Λίστα με όλα τα tests προς εκτέλεση

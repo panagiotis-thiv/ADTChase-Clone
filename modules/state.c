@@ -183,7 +183,7 @@ void state_update(State state, KeyState keys) {
 			}
 		}
 		if (countAsteroid < ASTEROID_NUM) {
-			add_asteroids(state, ASTEROID_NUM-countAsteroid);
+			add_asteroids(state,ASTEROID_NUM-countAsteroid);
 			state->info.score += ASTEROID_NUM-countAsteroid;
 		}
 	
@@ -240,26 +240,48 @@ void state_update(State state, KeyState keys) {
 		
 		bool collisionAsteroidSpaceship; 
 		bool collisionAsteroidBullet;
-		
+	
+		//Αστεροειδής - Διαστημόπλοιο
 		for (int i = 0; i < vector_size(state->objects); i++) {
 			Object obj = vector_get_at(state->objects, i);
 			collisionAsteroidSpaceship = false;
-			
-			//Αστεροειδής - Διαστημόπλοιο
 			if (obj != NULL) {
 				if(obj->type == ASTEROID)
 					collisionAsteroidSpaceship = CheckCollisionCircles(obj->position, (obj->size)/2, state->info.spaceship->position, SPACESHIP_SIZE/2);
 				if (collisionAsteroidSpaceship) {
+					free(obj);
 					vector_set_at(state->objects, i, NULL);
 					if (state->info.score < 0) 
 						state->info.score = (state->info.score/2) * (-1);
 					else 
 						state->info.score = (state->info.score/2);
-				}	
+					break;
+				}
 			}
-		
+		}
 
-			//Αστεροειδής - Σφαίρα
+		//Διαγραφή NULL κόμβων
+		for (int i = 0; i < vector_size(state->objects); i++) {
+			Object obj = vector_get_at(state->objects, i);
+			Object last_obj = vector_get_at(state->objects, vector_size(state->objects)-1);
+			while (last_obj == NULL) {
+				vector_remove_last(state->objects);
+				last_obj = vector_get_at(state->objects, vector_size(state->objects)-1);
+			}
+			if (obj == NULL) {
+				vector_swap(state->objects, i, vector_size(state->objects)-1);
+				vector_remove_last(state->objects);
+				i--;
+			}
+		}
+
+
+		//Αστεροειδής - Σφαίρα
+
+		//List to_remove = list_create(NULL);
+
+		for (int i = 0; i < vector_size(state->objects); i++) {
+			Object obj = vector_get_at(state->objects, i);
 			for (int j = 0; j < vector_size(state->objects); j++) {
 				Object obj2 = vector_get_at(state->objects, j);
 				collisionAsteroidBullet = false;
@@ -270,7 +292,6 @@ void state_update(State state, KeyState keys) {
 						//Δημιουργώ τους καινούργιους αστεροειδείς
 						if (obj->size > ASTEROID_MIN_SIZE*2) {
 							for (int k = 0; k < 2; k++) {
-
 								// Τυχαία κατεύθυνση και μήκος 1,5 φορά μεγαλύτερο της ταχύτητας του αρχικού.
 								Vector2 speed = vec2_from_polar(
 									obj->speed.x * 1.5,
@@ -294,12 +315,16 @@ void state_update(State state, KeyState keys) {
 							state->info.score = state->info.score-10;
 
 						//Καταστρέφω αστεροειδή και σφαίρα
+						free(obj);
 						vector_set_at(state->objects, i, NULL);
+						free(obj2);
 						vector_set_at(state->objects, j, NULL);
+						break;
 					}
 				}
 			}
 		}
+		
 
 		//Διαγραφή NULL κόμβων
 		for (int i = 0; i < vector_size(state->objects); i++) {
@@ -321,5 +346,12 @@ void state_update(State state, KeyState keys) {
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.
 
 void state_destroy(State state) {
-	// Προς υλοποίηση
+
+	for (int i = 0; i < vector_size(state->objects); i++) {
+		free(vector_get_at(state->objects, i));
+	}
+
+	vector_destroy(state->objects);
+	free(state->info.spaceship);
+	free(state);
 }
