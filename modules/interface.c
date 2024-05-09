@@ -45,6 +45,7 @@ Vector2 cartToRay(State state, Vector2 vec) {
 
 // Draw game (one frame)
 void interface_draw_frame(State state) {
+
 	UpdateMusicStream(background_music);
 	BeginDrawing();
 	ClearBackground(BLACK);
@@ -83,16 +84,15 @@ void interface_draw_frame(State state) {
 	DrawFPS(SCREEN_WIDTH - 80, 0);
 
 	if (state_info(state)->paused) {
-	DrawText(
-		"PRESS [P] TO PLAY AGAIN",
-		 GetScreenWidth() / 2 - MeasureText("PRESS [P] TO PLAY AGAIN", 20) / 2,
-		 GetScreenHeight() / 2 - 50, 20, GRAY
+		PauseMusicStream(background_music);
+		DrawText(
+			"PRESS [P] TO PLAY AGAIN",
+		 	GetScreenWidth() / 2 - MeasureText("PRESS [P] TO PLAY AGAIN", 20) / 2,
+			 GetScreenHeight() / 2 - 50, 20, GRAY
 		);
-	}
-
-	// Ηχος, αν είμαστε στο frame που συνέβη το game_over
-	// if(state->game_over)
-	// 	PlaySound(game_over_snd);
+	} 
+	else 
+		ResumeMusicStream(background_music);
 
 	EndDrawing();
 }
