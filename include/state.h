@@ -1,6 +1,7 @@
 #pragma once
 
 #include "raylib.h"
+#include "menu.h"
 #include "ADTList.h"
 
 // Χαρακτηριστικά αντικειμένων
@@ -55,11 +56,11 @@ typedef struct key_state {
 	bool space;
 	bool n;
 	bool p;
+	bool alt;
 }* KeyState;
 
 // Η κατάσταση του παιχνιδιού (handle)
 typedef struct state* State;
-
 
 // Δημιουργεί και επιστρέφει την αρχική κατάσταση του παιχνιδιού
 
@@ -78,7 +79,7 @@ List state_objects(State state, Vector2 top_left, Vector2 bottom_right);
 // Ενημερώνει την κατάσταση state του παιχνιδιού μετά την πάροδο 1 frame.
 // Το keys περιέχει τα πλήκτρα τα οποία ήταν πατημένα κατά το frame αυτό.
 
-void state_update(State state, KeyState keys);
+void state_update(State state, KeyState keys, Menu menu);
 
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.
 

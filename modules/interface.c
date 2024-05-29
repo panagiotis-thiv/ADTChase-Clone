@@ -86,8 +86,8 @@ void interface_draw_frame(State state) {
 	if (state_info(state)->paused) {
 		PauseMusicStream(background_music);
 		DrawText(
-			"PRESS [P] TO PLAY AGAIN",
-		 	GetScreenWidth() / 2 - MeasureText("PRESS [P] TO PLAY AGAIN", 20) / 2,
+			"PRESS [P] TO PLAY AGAIN OR [ALT] TO EXIT",
+		 	GetScreenWidth() / 2 - MeasureText("PRESS [P] TO PLAY AGAIN OR [ALT] TO EXIT", 20) / 2,
 			 GetScreenHeight() / 2 - 50, 20, GRAY
 		);
 	} 

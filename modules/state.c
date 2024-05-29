@@ -8,6 +8,7 @@
 #include "ADTList.h"
 #include "state.h"
 #include "vec2.h"
+#include "menu.h"
 
 
 // Οι ολοκληρωμένες πληροφορίες της κατάστασης του παιχνιδιού.
@@ -155,7 +156,7 @@ void vector_swap(Vector vec, int pos1, int pos2) {
 // Ενημερώνει την κατάσταση state του παιχνιδιού μετά την πάροδο 1 frame.
 // Το keys περιέχει τα πλήκτρα τα οποία ήταν πατημένα κατά το frame αυτό.
 
-void state_update(State state, KeyState keys) {
+void state_update(State state, KeyState keys, Menu menu) {
 	
 	//Ελέγχος άμα είναι πατημένο το p ώστε το παιχνίδι να σταματήσει ή όχι.
 	if (keys->p) 
@@ -339,6 +340,11 @@ void state_update(State state, KeyState keys) {
 				vector_remove_last(state->objects);
 				i--;
 			}
+		}
+	}
+	else {
+		if (keys->alt) {
+			set_active_menu(menu, 0);
 		}
 	}
 }
