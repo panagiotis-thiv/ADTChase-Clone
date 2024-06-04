@@ -79,7 +79,7 @@ List state_objects(State state, Vector2 top_left, Vector2 bottom_right);
 // Ενημερώνει την κατάσταση state του παιχνιδιού μετά την πάροδο 1 frame.
 // Το keys περιέχει τα πλήκτρα τα οποία ήταν πατημένα κατά το frame αυτό.
 
-void state_update(State state, KeyState keys);
+void state_update(State state, KeyState keys, Menu menu);
 
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.
 
