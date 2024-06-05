@@ -342,11 +342,12 @@ void state_update(State state, KeyState keys, Menu menu) {
 			}
 		}
 	}
-	else {
+	//else {
 		if (keys->alt) {
 			set_active_menu(menu, 0);
 		}
-	}
+	//}
+
 }
 
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.

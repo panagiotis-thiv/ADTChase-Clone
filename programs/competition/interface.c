@@ -3,6 +3,7 @@
 #include "state.h"
 #include "interface.h"
 #include "vec2.h"
+#include "menu.h"
 #include <math.h>
 
 // Assets
@@ -95,4 +96,53 @@ void interface_draw_frame(State state) {
 		ResumeMusicStream(background_music);
 
 	EndDrawing();
+}
+
+void interface_draw_menu(Menu menu) {
+
+	BeginDrawing();
+	ClearBackground(BLACK);
+
+	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+
+	DrawText("ADTChase", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 300, 70, DARKGREEN);
+
+	if (selected_menu(menu) == 1) {
+		DrawText("> Play <", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		DrawText("  Stats  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
+		DrawText("  Store  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+
+		if (IsKeyDown(KEY_ENTER)) {
+			set_active_menu(menu, 1);
+		}
+
+	}
+	else if (selected_menu(menu) == 2) {
+		DrawText("  Play  ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		DrawText("> Stats <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
+		DrawText("  Store  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+	}
+	else if (selected_menu(menu) == 3) {
+		DrawText("  Play  ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		DrawText("  Stats  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
+		DrawText("> Store <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+	}
+	else if (selected_menu(menu) == 4) {
+		DrawText("  Play  ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		DrawText("  Stats  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
+		DrawText("  Store  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+		DrawText("> Help <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+
+		//DrawText("ADTChase is a simple game based on the\nclassic asteroid game.\nThere are currently 5 levels\nyou have to beat", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		//DrawText("To beat each level you have to destroy\nthe \"core\" of that level, which is a uni-\nque asteroid. It appears after a while\nand it looks different.", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		//DrawText("To destroy each core you will need to\nupgrade your stats (damage, type of\ngun) which you can purchase through\nthe store using coins.", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 100, 40, BLUE);
+		//DrawText("To get coins you will need to destroy\nasteroids. But be careful not to collide\nwith them or you will lose coins!", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 100, 40, BLUE);
+
+	}
+	
+	EndDrawing();
+
 }

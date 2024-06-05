@@ -4,7 +4,7 @@
 		"program": "game",
 
 		// Directory στο οποίο βρίσκεται το πρόγραμμα (μόνο για μεταγλώτισση με make)
-		"dir": "programs/competition",
+		"dir": "programs/game",
 
 		// Οι τιμές που δηλώνονται στα arg1 - arg8 παρακάτω δίνονται αυτόματα σαν ορίσματα
 		// σε οποιοδήποτε πρόγραμμα τρέχουμε (είτε με Ctrl-Shift-B είτε στον debugger).
@@ -29,6 +29,7 @@
 		"arg8": "#",
 	},
 	"files.associations": {
-		"stdlib.h": "c"
+		"stdlib.h": "c",
+		"state.h": "c"
 	},
 }

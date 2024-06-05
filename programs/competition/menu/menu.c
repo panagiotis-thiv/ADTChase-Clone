@@ -25,7 +25,7 @@ Menu menu_create() {
 
     menu->m_selected = 1;
     menu->m_active = 0;
-    menu->options = 2;
+    menu->options = 4;
 
     return menu;
 }
