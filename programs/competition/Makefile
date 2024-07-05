@@ -3,6 +3,7 @@ LIB = ../../lib
 INCLUDE = ../../include
 MODULES = ../../modules
 MENU = ../../programs/competition/menu
+LEVEL = ../../programs/competition/level
 
 # compiler
 CC = gcc
@@ -12,7 +13,7 @@ CFLAGS = -Wall -Werror -g -I$(INCLUDE)
 LDFLAGS = -lm
 
 # Αρχεία .o
-OBJS = game.o state.o interface.o $(MODULES)/vec2.o $(MENU)/menu.o $(MODULES)/set_utils.o $(LIB)/k08.a $(LIB)/libraylib.a
+OBJS = game.o state.o interface.o $(LEVEL)/level.o $(MODULES)/vec2.o $(MENU)/menu.o $(MODULES)/set_utils.o $(LIB)/k08.a $(LIB)/libraylib.a
 
 # Το εκτελέσιμο πρόγραμμα
 EXEC = game

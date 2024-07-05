@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "menu.h"
 #include "ADTList.h"
+#include "level.h"
 
 // Χαρακτηριστικά αντικειμένων
 #define ASTEROID_NUM 6
@@ -38,6 +39,7 @@ typedef struct object {
 	Vector2 speed;				// Ταχύτητα (pixels/frame)
 	double size;				// Μέγεθος (pixels)
 	Vector2 orientation;		// Κατεύθυνση (μόνο για διαστημόπλοιο)
+	int health;
 }* Object;
 
 // Γενικές πληροφορίες για την κατάσταση του παιχνιδιού
@@ -64,7 +66,7 @@ typedef struct state* State;
 
 // Δημιουργεί και επιστρέφει την αρχική κατάσταση του παιχνιδιού
 
-State state_create();
+State state_create(LvlStats level);
 
 // Επιστρέφει τις βασικές πληροφορίες του παιχνιδιού στην κατάσταση state
 
