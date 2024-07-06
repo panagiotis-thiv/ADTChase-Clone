@@ -18,12 +18,14 @@ State level1;
 State level2;
 State level3;
 State level4;
-State boss;
+State level5;
 
 State state;
 Menu menu;
 LvlStats level;
 Texture background2;
+
+int selected = 1;
 
 bool play = false;
 
@@ -40,7 +42,8 @@ void menu_update() {
 	if (IsKeyPressed(KEY_LEFT_ALT)) {
 		set_active_menu(menu, 0);
 		set_page(menu, 1);
-		set_selected(menu, 1);
+		set_selected(menu, selected);
+		selected = 1;
 		play = false;
 	}
 
@@ -49,24 +52,28 @@ void menu_update() {
 	case 1:
 		if (IsKeyPressed(KEY_ENTER)) {
 			set_active_menu(menu, 1);
+			selected = selected_menu(menu);
 			set_selected(menu, 0);
 			return;
 		}
 	case 2:
 		if (IsKeyPressed(KEY_ENTER)) {
 			set_active_menu(menu, 2);
+			selected = selected_menu(menu);
 			set_selected(menu, 0);
 			return;
 		}
 	case 3:
 		if (IsKeyPressed(KEY_ENTER)) {
 			set_active_menu(menu, 3);
+			selected = selected_menu(menu);
 			set_selected(menu, 0);
 			return;
 		}
 	case 4:
 		if (IsKeyPressed(KEY_ENTER)) { 
 			set_active_menu(menu, 4);
+			selected = selected_menu(menu);
 			set_selected(menu, 0);
 			return;
 		}
@@ -97,10 +104,12 @@ void menu_update() {
 		set_page_next(menu);
 
 	//TODO
-	if (active_menu(menu) == 1 && get_page(menu) == 1) {
-		
-		if (IsKeyPressed(KEY_ENTER)) {
 
+
+	if (active_menu(menu) == 1 && IsKeyPressed(KEY_ENTER)) {
+		
+		switch (get_page(menu)) {
+		case 1:
 			if (level1 == NULL) {
 				level = level_init();
 				level1 = state_create(level);
@@ -108,7 +117,45 @@ void menu_update() {
 
 			state = level1;
 			play = true;
+			break;
+		case 2:
+			// if (level2 == NULL) {
+			// 	level = level_init();
+			// 	level2 = state_create(level);
+			// }
 
+			// state = level2;
+			// play = true;
+			break;
+		case 3:
+			// if (level3 == NULL) {
+			// 	level = level_init();
+			// 	level3 = state_create(level);
+			// }
+
+			// state = level3;
+			// play = true;
+			break;
+		case 4:
+			// if (level4 == NULL) {
+			// 	level = level_init();
+			// 	level4 = state_create(level);
+			// }
+
+			// state = level4;
+			// play = true;
+			break;
+		case 5:
+			// if (level5 == NULL) {
+			// 	level = level_init();
+			// 	level5 = state_create(level);
+			// }
+
+			// state = level5;
+			// play = true;
+			break;
+		default:
+			break;
 		}
 
 	}

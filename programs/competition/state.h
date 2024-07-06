@@ -46,7 +46,7 @@ typedef struct object {
 typedef struct state_info {
 	Object spaceship;				// πληροφορίες για τη το διαστημόπλοιο
 	bool paused;					// true αν το παιχνίδι είναι paused
-	int score;						// το τρέχον σκορ
+	int coins;						// το τρέχον σκορ
 }* StateInfo;
 
 // Πληροφορίες για το ποια πλήκτρα είναι πατημένα

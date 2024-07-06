@@ -9,6 +9,7 @@
 // Assets
 Texture spaceship_img;
 Texture background;
+Texture coin;
 
 Music background_music;
 
@@ -23,6 +24,7 @@ void interface_init() {
 	// Φόρτωση εικόνων και ήχων
 	spaceship_img = LoadTextureFromImage(LoadImage("assets/spaceship.png"));
 	background = LoadTextureFromImage(LoadImage("assets/background.png"));
+	coin = LoadTextureFromImage(LoadImage("assets/coin.png"));
 
 	background_music = LoadMusicStream("assets/background_music.mp3");
 
@@ -81,6 +83,16 @@ void interface_draw_frame(State state) {
 
 	}
 	
+	Rectangle coinRectangle = {0,0,coin.width,coin.height};
+	Vector2 coinCenter = {coin.width / 2, coin.height/2};
+
+	if (state_info(state)->score >= 100)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){95, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else if (state_info(state)->score >= 20)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){80, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else
+		DrawTexturePro(coin, coinRectangle, (Rectangle){70, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+
 	DrawText(TextFormat("%d", state_info(state)->score), 10, 10, 40, GRAY);
 	DrawFPS(SCREEN_WIDTH - 80, 0);
 
@@ -123,6 +135,7 @@ void draw_main_menu(Menu menu) {
 		DrawText("> Help <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
 	else
 		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+
 }
 
 void draw_help_menu(Menu menu) {
@@ -164,12 +177,6 @@ void draw_level_menu(Menu menu) {
 		DrawText("> Level 1 <", 150, 290, 20, WHITE);
 	else
 		DrawText("  Level 1  ", 150, 290, 20, WHITE);
-
-	//Line 1->2
-	DrawLine(259, 299, 292, 299, LIGHTGRAY);
-	DrawLine(259, 300, 292, 300, LIGHTGRAY);
-	DrawLine(259, 301, 292, 301, LIGHTGRAY);
-	DrawLine(259, 302, 292, 302, LIGHTGRAY);
 	
 	//Level 2
 	DrawCircleLines(350, 300, 55, GRAY);
@@ -181,12 +188,6 @@ void draw_level_menu(Menu menu) {
 		DrawText("> Level 2 <", 300, 290, 20, WHITE);
 	else
 		DrawText("  Level 2  ", 300, 290, 20, WHITE);
-	
-	//Line 2->3
-	DrawLine(408, 299, 445, 299, LIGHTGRAY);
-	DrawLine(408, 300, 445, 300, LIGHTGRAY);
-	DrawLine(408, 301, 445, 301, LIGHTGRAY);
-	DrawLine(408, 302, 445, 302, LIGHTGRAY);
 
 	//Level 3
 	DrawCircleLines(500, 300, 55, GRAY);
@@ -199,13 +200,6 @@ void draw_level_menu(Menu menu) {
 	else
 		DrawText("  Level 3  ", 450, 290, 20, WHITE);
 
-	//Line 3->4
-	DrawLine(558, 299, 592, 299, LIGHTGRAY);
-	DrawLine(558, 300, 592, 300, LIGHTGRAY);
-	DrawLine(558, 301, 592, 301, LIGHTGRAY);
-	DrawLine(558, 302, 592, 302, LIGHTGRAY);
-
-
 	//Level 4
 	DrawCircleLines(650, 300, 55, GRAY);
 	DrawCircleLines(650, 300, 56, GRAY);
@@ -216,13 +210,6 @@ void draw_level_menu(Menu menu) {
 		DrawText("> Level 4 <", 600, 290, 20, WHITE);
 	else
 		DrawText("  Level 4  ", 600, 290, 20, WHITE);
-
-	//Line 2.5->5
-	DrawLine(425, 300, 424, 418, LIGHTGRAY);
-	DrawLine(426, 300, 425, 418, LIGHTGRAY);
-
-	DrawLine(427, 300, 426, 418, LIGHTGRAY);
-	DrawLine(428, 300, 427, 418, LIGHTGRAY);
 
 	//Level 5
 	DrawCircleLines(425, 480, 55, DARKPURPLE);
@@ -239,8 +226,57 @@ void draw_level_menu(Menu menu) {
 	else
 		DrawText("  Level 5  ", 375, 470, 20, WHITE);
 
-	
+	//Lines
 
+	//Line 1->2
+	DrawLine(259, 299, 292, 299, LIGHTGRAY);
+	DrawLine(259, 300, 292, 300, LIGHTGRAY);
+	DrawLine(259, 301, 292, 301, LIGHTGRAY);
+
+	//Line 2->3
+	DrawLine(408, 299, 445, 299, LIGHTGRAY);
+	DrawLine(408, 300, 445, 300, LIGHTGRAY);
+	DrawLine(408, 301, 445, 301, LIGHTGRAY);
+
+	//Line 3->4
+	DrawLine(558, 299, 592, 299, LIGHTGRAY);
+	DrawLine(558, 300, 592, 300, LIGHTGRAY);
+	DrawLine(558, 301, 592, 301, LIGHTGRAY);
+
+	//Line above level 5
+	DrawLine(425, 385, 424, 418, LIGHTGRAY);
+	DrawLine(426, 385, 425, 418, LIGHTGRAY);
+	DrawLine(427, 385, 426, 418, LIGHTGRAY);
+
+	//Line below level 1 & 2
+	DrawLine(200, 384, 425, 384, LIGHTGRAY);
+	DrawLine(200, 385, 425, 385, LIGHTGRAY);
+	DrawLine(200, 386, 425, 386, LIGHTGRAY);
+
+	//Line below 1 connecting to line below 1 & 2
+	DrawLine(199, 358, 199, 385, LIGHTGRAY);
+	DrawLine(200, 358, 200, 385, LIGHTGRAY);
+	DrawLine(201, 358, 201, 385, LIGHTGRAY);
+
+	//Line below 2 connecting to line below 1 & 2
+	DrawLine(349, 358, 349, 385, LIGHTGRAY);
+	DrawLine(350, 358, 350, 385, LIGHTGRAY);
+	DrawLine(351, 358, 351, 385, LIGHTGRAY);
+
+	//Line below level 3 & 4
+	DrawLine(425, 384, 650, 384, LIGHTGRAY);
+	DrawLine(425, 385, 650, 385, LIGHTGRAY);
+	DrawLine(425, 386, 650, 386, LIGHTGRAY);
+
+	//Line below 3 connecting to line below 3 & 4
+	DrawLine(499, 358, 499, 385, LIGHTGRAY);
+	DrawLine(500, 358, 500, 385, LIGHTGRAY);
+	DrawLine(501, 358, 501, 385, LIGHTGRAY);
+
+	//Line below 4 connecting to line below 3 & 4
+	DrawLine(649, 358, 649, 385, LIGHTGRAY);
+	DrawLine(650, 358, 650, 385, LIGHTGRAY);
+	DrawLine(651, 358, 651, 385, LIGHTGRAY);
 
 	DrawText("Press [ALT] to go back.", 10, SCREEN_HEIGHT - 40, 20, DARKGREEN);
 }

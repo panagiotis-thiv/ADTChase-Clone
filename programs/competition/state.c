@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 #include "ADTVector.h"
 #include "ADTList.h"
@@ -72,14 +73,22 @@ static void add_asteroids(State state, LvlStats level, int num) {
 			randf(ASTEROID_MIN_SPEED, ASTEROID_MAX_SPEED) * state->speed_factor * level_info(level, asteroid_speed),
 			randf(0, 2*PI)
 		);
+		
+		float object_size = randf(ASTEROID_MIN_SIZE, ASTEROID_MAX_SIZE);
+		float sizePercentage = ((float)object_size / (float)ASTEROID_MAX_SIZE);
 
+		float asteroid_hp = sizePercentage * level_info(level, asteroid_hp);
+
+		if (asteroid_hp == 0)
+			asteroid_hp = 1;
+		
 		Object asteroid = create_object(
 			ASTEROID,
 			position,
 			speed,
 			(Vector2){0, 0},								// δεν χρησιμοποιείται για αστεροειδείς
-			randf(ASTEROID_MIN_SIZE, ASTEROID_MAX_SIZE),		// τυχαίο μέγεθος
-			level_info(level, asteroid_hp)
+			object_size,		// τυχαίο μέγεθος
+			asteroid_hp
 		);
 		vector_insert_last(state->objects, asteroid);
 	}
@@ -96,7 +105,7 @@ State state_create(LvlStats level) {
 	state->info.paused = false;				// Το παιχνίδι ξεκινάει χωρίς να είναι paused.
 	state->speed_factor = 1;				// Κανονική ταχύτητα
 	state->next_bullet = 0;					// Σφαίρα επιτρέπεται αμέσως
-	state->info.score = 0;				// Αρχικό σκορ 0
+	state->info.coins = 0;				// Αρχικό σκορ 0
 
 	// Δημιουργούμε το vector των αντικειμένων, και προσθέτουμε αντικείμενα
 	state->objects = vector_create(0, NULL);
@@ -192,25 +201,10 @@ void state_update(State state, KeyState keys, Menu menu) {
 				countAsteroid++;
 			}
 		}
-		if (countAsteroid < ASTEROID_NUM) {
+		if (countAsteroid < ASTEROID_NUM)
 			add_asteroids(state, level, ASTEROID_NUM-countAsteroid);
-			state->info.score += ASTEROID_NUM-countAsteroid;
-		}
 	
 		state->info.spaceship->position = vec2_add(state->info.spaceship->position, vec2_scale(state->info.spaceship->speed, state->speed_factor));
-
-		//Αύξηση ταχύτητας παιχνιδιού άμα το σκορ είναι πολλαπλάσιο του 100
-		
-		if ((state->info.score != 0) && (state->info.score % 100 == 0)) {
-			int count = 1;
-			float temp_speed = state->speed_factor;
-			while (temp_speed != 1) {
-				temp_speed /= 1.1;
-				count++;
-			}
-			if (count == (state->info.score / 100))
-				state->speed_factor += state->speed_factor * 0.1;
-		}
 		
 		//Έλεγχος για όταν κάποιο κουμπί είναι πατημένο.
 
@@ -262,10 +256,14 @@ void state_update(State state, KeyState keys, Menu menu) {
 				if (collisionAsteroidSpaceship) {
 					free(obj);
 					vector_set_at(state->objects, i, NULL);
-					if (state->info.score < 0) 
-						state->info.score = (state->info.score/2) * (-1);
+
+					float sizePercentage = ((float)obj->size / (float)ASTEROID_MAX_SIZE) * 10;
+
+					if (state->info.coins < 0) 
+						state->info.coins = (state->info.coins/randf(1.5f, sizePercentage/1.5)) * (-1);
 					else 
-						state->info.score = (state->info.score/2);
+						state->info.coins = (state->info.coins/randf(1.5f, sizePercentage/1.5));
+
 					break;
 				}
 			}
@@ -300,8 +298,8 @@ void state_update(State state, KeyState keys, Menu menu) {
 					if (obj->type == ASTEROID && obj2->type == BULLET ) 
 						collisionAsteroidBullet = CheckCollisionCircles(obj->position, (obj->size)/2, obj2->position, BULLET_SIZE/2);					
 					if (collisionAsteroidBullet) {
-						if (obj->health > 26) {
-							obj->health = obj->health - 25;
+						if (obj->health > 11) {
+							obj->health = obj->health - 10;
 
 							free(obj2);
 							vector_set_at(state->objects, j, NULL);
@@ -319,22 +317,53 @@ void state_update(State state, KeyState keys, Menu menu) {
 										randf(0, 2*PI)
 									);
 
+									float object_size = randf(ASTEROID_MIN_SIZE, obj->size/2);
+									float sizePercentage = ((float)object_size / (float)obj->size/2);
+									
+									float asteroid_hp = sizePercentage * level_info(level, asteroid_hp);
+
+									if (asteroid_hp == 0)
+										asteroid_hp = 1;
+
 									Object asteroid = create_object(
 										ASTEROID,
 										obj->position,									//Η θέση τους θα είναι η θέση του αστεροειδή που συγκρούστηκε
 										speed,
 										(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
-										randf(ASTEROID_MIN_SIZE, obj->size/2),		    //Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
-										level_info(level, asteroid_hp)
+										object_size,		    						//Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
+										asteroid_hp
 									);
 									vector_insert_last(state->objects, asteroid);
 								}
+								
 							}
 
-							if ((state->info.score-10) < 0)
-								state->info.score = 0;
-							else
-								state->info.score = state->info.score-10;
+							//Coin system
+
+							float sizePercentage = ((float)obj->size / (float)ASTEROID_MAX_SIZE) * 100;
+								
+							int minReward = 0, maxReward = 0;
+   							int threshold = 10;
+
+							for (int i = 0; i < 10; i++) {
+								if (sizePercentage <= threshold) {
+									if (i == 0) {
+										minReward = 0;
+										maxReward = (threshold * level_info(level, reward)) / 100;
+									} else {
+										minReward = ((threshold - 10) * level_info(level, reward)) / 100;
+										maxReward = (threshold * level_info(level, reward)) / 100;
+									}
+									break;
+								}
+								threshold = threshold + 10;
+							}							
+
+							if (minReward < 1) 
+								minReward = 1;
+							
+							state_info(state)->coins += randf(minReward, maxReward);
+ 
 
 							//Καταστρέφω αστεροειδή και σφαίρα
 							free(obj);
