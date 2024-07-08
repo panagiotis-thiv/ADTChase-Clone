@@ -1,15 +1,20 @@
-#include "raylib.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
+#include "raylib.h"
 #include "state.h"
 #include "interface.h"
 #include "vec2.h"
 #include "menu.h"
-#include <math.h>
+#include "store.h"
+
 
 // Assets
 Texture spaceship_img;
 Texture background;
 Texture coin;
+Texture heart;
 
 Music background_music;
 
@@ -25,6 +30,7 @@ void interface_init() {
 	spaceship_img = LoadTextureFromImage(LoadImage("assets/spaceship.png"));
 	background = LoadTextureFromImage(LoadImage("assets/background.png"));
 	coin = LoadTextureFromImage(LoadImage("assets/coin.png"));
+	heart = LoadTextureFromImage(LoadImage("assets/heart.png"));
 
 	background_music = LoadMusicStream("assets/background_music.mp3");
 
@@ -47,7 +53,7 @@ Vector2 cartToRay(State state, Vector2 vec) {
 }
 
 // Draw game (one frame)
-void interface_draw_frame(State state) {
+void interface_draw_frame(State state, Store store) {
 
 	UpdateMusicStream(background_music);
 	BeginDrawing();
@@ -86,15 +92,32 @@ void interface_draw_frame(State state) {
 	Rectangle coinRectangle = {0,0,coin.width,coin.height};
 	Vector2 coinCenter = {coin.width / 2, coin.height/2};
 
-	if (state_info(state)->score >= 100)
+	if (state_info(state)->coins >= 100)
 		DrawTexturePro(coin, coinRectangle, (Rectangle){95, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
-	else if (state_info(state)->score >= 20)
+	else if (state_info(state)->coins >= 20)
 		DrawTexturePro(coin, coinRectangle, (Rectangle){80, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
 	else
 		DrawTexturePro(coin, coinRectangle, (Rectangle){70, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
 
-	DrawText(TextFormat("%d", state_info(state)->score), 10, 10, 40, GRAY);
+	DrawText(TextFormat("%d", state_info(state)->coins), 10, 10, 40, GRAY);
 	DrawFPS(SCREEN_WIDTH - 80, 0);
+
+	if (state_info(state)->drawCoinsReward) {
+		Vector2 coinPos = cartToRay(state, state_info(state)->coinsPos);
+		DrawText(TextFormat("+ %d", state_info(state)->coinsReward), coinPos.x, coinPos.y, 20, GOLD);
+	}
+
+	Rectangle heartRectangle = {0,0,heart.width,heart.height};
+	Vector2 heartCenter = {heart.width / 2, heart.height/2};	
+
+	DrawTexturePro(heart, heartRectangle, (Rectangle){SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20, heartRectangle.width,heartRectangle.height}, heartCenter, 0, WHITE);
+
+	if (store_info(store, spaceshipHP) >= 100)
+		DrawText(TextFormat("%d / %d", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH - 138, SCREEN_HEIGHT - 30, 20, GRAY);
+	else if (store_info(store, spaceshipHP) >= 500)
+		DrawText(TextFormat("%d / %d", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH - 155, SCREEN_HEIGHT - 30, 20, GRAY);
+	else
+		DrawText(TextFormat("%d / %d", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH - 120, SCREEN_HEIGHT - 30, 20, GRAY);
 
 	if (state_info(state)->paused) {
 		PauseMusicStream(background_music);
@@ -120,21 +143,16 @@ void draw_main_menu(Menu menu) {
 		DrawText("> Play <", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
 	else 
 		DrawText("  Play  ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, BLUE);
-	
-	if (selected_menu(menu) == 2)
-		DrawText("> Stats <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
-	else
-		DrawText("  Stats  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
 
-	if (selected_menu(menu) == 3)
-		DrawText("> Store <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+	if (selected_menu(menu) == 2)
+		DrawText("> Store <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
 	else
-		DrawText("  Store  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
+		DrawText("  Store  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) - 40, 40, BLUE);
 	
-	if (selected_menu(menu) == 4) 
-		DrawText("> Help <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+	if (selected_menu(menu) == 3) 
+		DrawText("> Help <", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
 	else
-		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 80, 40, BLUE);
+		DrawText("  Help  ", SCREEN_WIDTH/2 - 100, ((SCREEN_HEIGHT/2)) + 20, 40, BLUE);
 
 }
 
@@ -281,7 +299,94 @@ void draw_level_menu(Menu menu) {
 	DrawText("Press [ALT] to go back.", 10, SCREEN_HEIGHT - 40, 20, DARKGREEN);
 }
 
-void interface_draw_menu(Menu menu) {
+void draw_store_menu(Menu menu, State state, Store store) {
+	DrawText("ADTChase", 10, 10, 30, DARKGREEN);
+
+	DrawText("Store", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 300, 50, DARKGREEN);
+	
+	Rectangle coinRectangle = {0,0,coin.width,coin.height};
+	Vector2 coinCenter = {coin.width / 2, coin.height/2};
+
+	if (state_info(state)->coins >= 100) {
+		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+		DrawText(TextFormat("%d", state_info(state)->coins), 780, 10, 40, GRAY);
+	}
+	else if (state_info(state)->coins >= 20) {
+		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+		DrawText(TextFormat("%d", state_info(state)->coins), 800, 10, 40, GRAY);
+	}
+	else {
+		DrawText(TextFormat("%d", state_info(state)->coins), 820, 10, 40, GRAY);
+		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	}
+	
+	if (get_page(menu) % 2 == 1) {
+
+		DrawText("Spaceship Upgrades", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 200, 30, BLUE);
+		DrawText("> > Gun Upgrades", SCREEN_WIDTH/2 + 180, SCREEN_HEIGHT/2 - 195, 25, GRAY);
+
+		switch (store_info(store, spaceshipHP)) {
+		case 50:
+			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("50HP > > 70HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("-30 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 70:
+			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("70HP > > 100HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("-70 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 100:
+			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("100HP > > 160HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("-140 Coins", SCREEN_WIDTH/2 + 60, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 160:
+			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("160HP > > 250HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("-190 Coins", SCREEN_WIDTH/2 + 70, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 250:
+			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("250HP > > 500HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("-413 Coins", SCREEN_WIDTH/2 + 70, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 500:
+			DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("500HP | ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("MAX HP", SCREEN_WIDTH/2 + 5, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		case 1000:
+			DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("1000HP ? ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
+			DrawText("NO WAY", SCREEN_WIDTH/2 + 15, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			break;
+
+		default:
+			break;
+		}
+
+
+	}
+
+	if (get_page(menu) % 2 == 0) {
+		
+		DrawText("Gun Upgrades", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200, 30, BLUE);
+		DrawText("Spaceship Upgrades < <", SCREEN_WIDTH/2 - 400, SCREEN_HEIGHT/2 - 195, 25, GRAY);
+	}
+
+
+	DrawText("Press [ALT] to go back.", 10, SCREEN_HEIGHT - 40, 20, DARKGREEN);
+}
+
+
+void interface_draw_menu(Menu menu, State state, Store store) {
 
 	BeginDrawing();
 	ClearBackground(BLACK);
@@ -296,12 +401,9 @@ void interface_draw_menu(Menu menu) {
 		draw_level_menu(menu);
 		break;
 	case 2:
-		//draw_stats_menu(menu);
+		draw_store_menu(menu, state, store);
 		break;
 	case 3:
-		//draw_store_menu(menu);
-		break;
-	case 4:
 		draw_help_menu(menu);
 		break;
 

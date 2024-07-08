@@ -82,5 +82,6 @@ int get_page(Menu menu) {
 }
 
 void set_page(Menu menu, int page) {
-    menu->page_selected = page;
+    if (page <= menu->page_max)
+        menu->page_selected = page;
 }

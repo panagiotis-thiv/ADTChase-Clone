@@ -13,7 +13,6 @@ struct levels {
 
     int asteroid_hp;
     int asteroid_speed;
-    int spaceship_hp;   
     int reward;                 //Coins from destroying an asteroid (not exact, more like a max amount)
 
     bool passive_asteroids;     //Whether there are asteroids that can deal damage in addition to just colliding with them, they shoot projectiles or something similar.
@@ -28,8 +27,6 @@ LvlStats level_init() {
     level->asteroid_speed = 1;
     level->passive_asteroids = true;
     level->reward = 5;
-    level->spaceship_hp = 0;
-
     return level;
 }
 
@@ -40,8 +37,6 @@ int level_info(LvlStats level, LvLSetting setting) {
         return level->asteroid_hp;
     case asteroid_speed:
         return level->asteroid_speed;
-    case spaceship_hp:
-        return level->spaceship_hp;
     case reward:
         return level->reward;
     case passive_asteroids:
@@ -57,6 +52,4 @@ void level_update(LvlStats level, int asteroid_hp, int asteroid_speed, int space
     level->asteroid_speed = asteroid_speed;
     level->passive_asteroids = passive_asteroids;
     level->reward = reward;
-    level->spaceship_hp = spaceship_hp;
-
 }

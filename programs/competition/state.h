@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "ADTList.h"
 #include "level.h"
+#include "store.h"
 
 // Χαρακτηριστικά αντικειμένων
 #define ASTEROID_NUM 6
@@ -47,6 +48,9 @@ typedef struct state_info {
 	Object spaceship;				// πληροφορίες για τη το διαστημόπλοιο
 	bool paused;					// true αν το παιχνίδι είναι paused
 	int coins;						// το τρέχον σκορ
+	bool drawCoinsReward;
+	int coinsReward;
+	Vector2 coinsPos;
 }* StateInfo;
 
 // Πληροφορίες για το ποια πλήκτρα είναι πατημένα
@@ -66,7 +70,7 @@ typedef struct state* State;
 
 // Δημιουργεί και επιστρέφει την αρχική κατάσταση του παιχνιδιού
 
-State state_create(LvlStats level);
+State state_create(LvlStats level, Store store);
 
 // Επιστρέφει τις βασικές πληροφορίες του παιχνιδιού στην κατάσταση state
 

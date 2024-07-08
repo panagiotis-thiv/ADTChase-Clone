@@ -13,6 +13,7 @@
 #include "state.h"
 #include "menu.h"
 #include "level.h"
+#include "store.h"
 
 State level1;
 State level2;
@@ -23,20 +24,27 @@ State level5;
 State state;
 Menu menu;
 LvlStats level;
+Store store;
+
 Texture background2;
 
 int selected = 1;
+
+float messageTimer = 0.0f;       	// Timer for how long the message has been displayed
+const float displayDuration = 0.8f; // Duration to display the message (in seconds)
 
 bool play = false;
 
 void menu_update() {
 
 	//Changes which option of the menu is selected 
-	if (IsKeyPressed(KEY_DOWN))
-		next_menu(menu);
+	if (selected_menu(menu) != 0) {
+		if (IsKeyPressed(KEY_DOWN))
+			next_menu(menu);
 
-	if (IsKeyPressed(KEY_UP)) 
-		prev_menu(menu);
+		if (IsKeyPressed(KEY_UP)) 
+			prev_menu(menu);
+	}
 
 	//Goes to the main menu
 	if (IsKeyPressed(KEY_LEFT_ALT)) {
@@ -70,13 +78,6 @@ void menu_update() {
 			set_selected(menu, 0);
 			return;
 		}
-	case 4:
-		if (IsKeyPressed(KEY_ENTER)) { 
-			set_active_menu(menu, 4);
-			selected = selected_menu(menu);
-			set_selected(menu, 0);
-			return;
-		}
 	default:
 		break;
 	}
@@ -89,39 +90,111 @@ void menu_update() {
 	case 1:
 		set_max_page(menu, 5);
 		break;
-	case 4:
+	case 2:
+		set_max_page(menu, 8);
+
+		if (IsKeyPressed(KEY_LEFT))
+			set_page(menu, 1);
+
+		if (IsKeyPressed(KEY_RIGHT))
+			set_page(menu, 2);
+
+		if (IsKeyPressed(KEY_DOWN))
+			set_page(menu, get_page(menu) + 2);
+
+		if (IsKeyPressed(KEY_UP)) 
+			set_page(menu, get_page(menu) - 2);
+
+		if (get_page(menu) < 1)
+			set_page(menu, 1);
+
+		if ((get_page(menu) % 2 == 1) && IsKeyPressed(KEY_ENTER)) {
+			
+			switch (store_info(store, spaceshipHP)) {
+			case 50:
+				if (state_info(state)->coins >= 30) {
+					state_info(state)->coins = state_info(state)->coins - 30;
+					store_update(store, 70, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			case 70:
+				
+				if (state_info(state)->coins >= 70) {
+					state_info(state)->coins = state_info(state)->coins - 70;
+					store_update(store, 100, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			case 100:
+				
+				if (state_info(state)->coins >= 140) {
+					state_info(state)->coins = state_info(state)->coins - 140;
+					store_update(store, 160, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			case 160:
+				if (state_info(state)->coins >= 190) {
+					state_info(state)->coins = state_info(state)->coins - 190;
+					store_update(store, 250, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			case 250:
+				if (state_info(state)->coins >= 413) {
+					state_info(state)->coins = state_info(state)->coins - 413;
+					store_update(store, 500, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			case 500:
+				if (state_info(state)->coins >= 550) {
+					state_info(state)->coins = state_info(state)->coins - 550;
+					store_update(store, 1000, -1, -1, -1);
+					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+				}
+				break;
+
+			default:
+				break;
+			}
+
+		}
+
+		break;
+	case 3:
 		set_max_page(menu, 2);
 		break;
 	default:
 		break;
 
 	}
+	
+	if (active_menu(menu) != 2) {
+		if (IsKeyPressed(KEY_LEFT))
+			set_page_prev(menu);
 
-	if (IsKeyPressed(KEY_LEFT))
-		set_page_prev(menu);
-
-	if (IsKeyPressed(KEY_RIGHT))
-		set_page_next(menu);
-
-	//TODO
-
+		if (IsKeyPressed(KEY_RIGHT))
+			set_page_next(menu);
+	}
 
 	if (active_menu(menu) == 1 && IsKeyPressed(KEY_ENTER)) {
 		
 		switch (get_page(menu)) {
-		case 1:
-			if (level1 == NULL) {
-				level = level_init();
-				level1 = state_create(level);
-			}
-
+		case 1:			
 			state = level1;
 			play = true;
 			break;
 		case 2:
 			// if (level2 == NULL) {
 			// 	level = level_init();
-			// 	level2 = state_create(level);
+			// 	level2 = state_create(level, store);
 			// }
 
 			// state = level2;
@@ -130,7 +203,7 @@ void menu_update() {
 		case 3:
 			// if (level3 == NULL) {
 			// 	level = level_init();
-			// 	level3 = state_create(level);
+			// 	level3 = state_create(level, store);
 			// }
 
 			// state = level3;
@@ -139,7 +212,7 @@ void menu_update() {
 		case 4:
 			// if (level4 == NULL) {
 			// 	level = level_init();
-			// 	level4 = state_create(level);
+			// 	level4 = state_create(level, store);
 			// }
 
 			// state = level4;
@@ -148,7 +221,7 @@ void menu_update() {
 		case 5:
 			// if (level5 == NULL) {
 			// 	level = level_init();
-			// 	level5 = state_create(level);
+			// 	level5 = state_create(level, store);
 			// }
 
 			// state = level5;
@@ -161,7 +234,18 @@ void menu_update() {
 	}
 
 }
+	
+void check_drawCoinsReward() {
 
+	if (state_info(state)->drawCoinsReward) {
+		messageTimer += GetFrameTime(); 	
+
+		if (messageTimer > displayDuration) {
+			state_info(state)->drawCoinsReward = false;
+			messageTimer = 0.0f;
+		}
+	}
+}
 
 void update_and_draw() {
 
@@ -173,16 +257,20 @@ void update_and_draw() {
 
 	if (play) {
 		state_update(state, &keys, menu);
-		interface_draw_frame(state);
+		check_drawCoinsReward();
+		interface_draw_frame(state, store);
 	}
 	else
-		interface_draw_menu(menu);
-
+		interface_draw_menu(menu, state, store);
 }
 
 int main() {
-	//state = state_create();
-	menu = menu_create(4);
+	level = level_init();
+	store = store_init();
+	level1 = state_create(level, store);
+	state = level1;
+
+	menu = menu_create(3);
 	interface_init();
 
 	// Η κλήση αυτή καλεί συνεχόμενα την update_and_draw μέχρι ο χρήστης να κλείσει το παράθυρο

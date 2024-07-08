@@ -4,11 +4,10 @@ typedef struct levels* LvlStats;
 
 typedef enum {
 
-    asteroid_hp         = 127,
-    asteroid_speed      = 227,
-    spaceship_hp        = 327,
-    reward              = 427,            
-    passive_asteroids   = 527
+    asteroid_hp         = 100,
+    asteroid_speed      = 200,
+    reward              = 300,            
+    passive_asteroids   = 400
 
 } LvLSetting;
 
