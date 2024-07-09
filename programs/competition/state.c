@@ -319,8 +319,6 @@ void state_update(State state, KeyState keys, Menu menu) {
 					
 					state_info(state)->spaceship->health = state_info(state)->spaceship->health - (int)(2.5 * sizePercentage);
 
-					printf("Asteroid size was %f and damage was %d, spaceship hp is now %d\n", obj->size, (int)(2.5 * sizePercentage), state_info(state)->spaceship->health);
-
 					if (state_info(state)->spaceship->health <= 0) {
 						state->info.coins = 0;
 						state_info(state)->spaceship->health = store_info(state->store, spaceshipHP);
