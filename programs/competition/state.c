@@ -31,7 +31,7 @@ struct state {
 
 // Δημιουργεί και επιστρέφει ένα αντικείμενο
 
-static Object create_object(ObjectType type, Vector2 position, Vector2 speed, Vector2 orientation, double size, int health) {
+static Object create_object(ObjectType type, Vector2 position, Vector2 speed, Vector2 orientation, double size, int health, int pistol_bullets, int rifle_bullets, int shotgun_bullets) {
 	Object obj = malloc(sizeof(*obj));
 	obj->type = type;
 	obj->position = position;
@@ -39,6 +39,9 @@ static Object create_object(ObjectType type, Vector2 position, Vector2 speed, Ve
 	obj->orientation = orientation;
 	obj->size = size;
 	obj->health = health;
+	obj->pistol_bullets = pistol_bullets;
+	obj->rifle_bullets = rifle_bullets;
+	obj->shotgun_bullets = shotgun_bullets;
 	return obj;
 }
 
@@ -90,7 +93,10 @@ static void add_asteroids(State state, LvlStats level, int num) {
 			speed,
 			(Vector2){0, 0},								// δεν χρησιμοποιείται για αστεροειδείς
 			object_size,		// τυχαίο μέγεθος
-			asteroidHP
+			asteroidHP,
+			0,
+			0,
+			0
 		);
 		vector_insert_last(state->objects, asteroid);
 	}
@@ -123,7 +129,10 @@ State state_create(LvlStats level, Store store) {
 		(Vector2){0, 0},			// μηδενική αρχική ταχύτητα
 		(Vector2){0, 1},			// κοιτάει προς τα πάνω
 		SPACESHIP_SIZE,				// μέγεθος
-		store_info(store, spaceshipHP)
+		store_info(store, spaceshipHP),
+		25,
+		50,
+		15
 	);
 
 	// Προσθήκη αρχικών αστεροειδών
@@ -225,27 +234,71 @@ void state_update(State state, KeyState keys, Menu menu) {
 		}
 		else 
 			state->info.spaceship->speed = vec2_scale(state->info.spaceship->speed, SPACESHIP_SLOWDOWN);
+
+		bool shoot = true;
 		if (keys->space) {
-			if (state->next_bullet == 0) {
-				Vector2 speed = vec2_add(state->info.spaceship->speed, vec2_scale(state->info.spaceship->orientation, BULLET_SPEED));
-				Vector2 position = state->info.spaceship->position;
 
-				Object bullet = create_object(
-					BULLET,
-					position,
-					speed,
-					(Vector2){0, 0},								
-					BULLET_SIZE,
-					0
-				);
-				vector_insert_last(state->objects, bullet);
+			switch (store_info(state->store, selected_gun)) {
+			case 0:
+				if (state_info(state)->spaceship->pistol_bullets <= 0)
+					shoot = false;
 
-				state->next_bullet++;
+				break;
+			case 1:
+				if (state_info(state)->spaceship->rifle_bullets <= 0)
+					shoot = false;
+
+				break;
+			case 2:
+				if (state_info(state)->spaceship->shotgun_bullets <= 0)
+					shoot = false;
+
+				break;
+			default:
+				break;
 			}
-			else if (state->next_bullet == BULLET_DELAY)
-				state->next_bullet = 0;
-			else
-				state->next_bullet++;
+
+
+			if (shoot == true) {
+				if (state->next_bullet == 0) {
+					Vector2 speed = vec2_add(state->info.spaceship->speed, vec2_scale(state->info.spaceship->orientation, BULLET_SPEED));
+					Vector2 position = state->info.spaceship->position;
+
+					Object bullet = create_object(
+						BULLET,
+						position,
+						speed,
+						(Vector2){0, 0},								
+						BULLET_SIZE,
+						0,
+						0,
+						0,
+						0
+					);
+					vector_insert_last(state->objects, bullet);
+
+					state->next_bullet++;
+
+					switch (store_info(state->store, selected_gun)) {
+					case 0:
+						state_info(state)->spaceship->pistol_bullets--;
+						break;
+					case 1:
+						state_info(state)->spaceship->rifle_bullets--;
+						break;
+					case 2:
+						state_info(state)->spaceship->shotgun_bullets--;
+						break;
+					default:
+						break;
+					}
+
+				}
+				else if (state->next_bullet >= store_info(state->store, delay))
+					state->next_bullet = 0;
+				else
+					state->next_bullet++;
+			}
 		}
 
 		//Έλεγχος συγκρούσεων
@@ -309,8 +362,8 @@ void state_update(State state, KeyState keys, Menu menu) {
 					if (obj->type == ASTEROID && obj2->type == BULLET ) 
 						collisionAsteroidBullet = CheckCollisionCircles(obj->position, (obj->size)/2, obj2->position, BULLET_SIZE/2);					
 					if (collisionAsteroidBullet) {
-						if (obj->health > 21) {
-							obj->health = obj->health - 20;
+						if (obj->health > store_info(state->store, damage)+1) {
+							obj->health = obj->health - store_info(state->store, damage);
 
 							free(obj2);
 							vector_set_at(state->objects, j, NULL);
@@ -342,7 +395,10 @@ void state_update(State state, KeyState keys, Menu menu) {
 										speed,
 										(Vector2){0, 0},								//Δεν χρησιμοποιείται για αστεροειδείς
 										object_size,		    						//Τυχαίο μέγεθος μέχρι το μέγεθος του αστεροειδή που συγκρούστηκε δία 2
-										asteroidHP
+										asteroidHP,
+										0,
+										0,
+										0
 									);
 									vector_insert_last(state->objects, asteroid);
 								}

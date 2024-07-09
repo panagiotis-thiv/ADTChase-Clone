@@ -102,20 +102,23 @@ void menu_update() {
 		if (IsKeyPressed(KEY_DOWN))
 			set_page(menu, get_page(menu) + 2);
 
-		if (IsKeyPressed(KEY_UP)) 
+		if (IsKeyPressed(KEY_UP) && get_page(menu) != 2) 
 			set_page(menu, get_page(menu) - 2);
 
 		if (get_page(menu) < 1)
 			set_page(menu, 1);
 
-		if ((get_page(menu) % 2 == 1) && IsKeyPressed(KEY_ENTER)) {
+		if (get_page(menu) == 7)
+			set_page(menu, 5);
+
+		if ((get_page(menu) == 3) && IsKeyPressed(KEY_ENTER)) {
 			
 			switch (store_info(store, spaceshipHP)) {
 			case 50:
 				if (state_info(state)->coins >= 30) {
 					state_info(state)->coins = state_info(state)->coins - 30;
-					store_update(store, 70, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 70, -1, -1, -1, -1);			
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 20;	
 				}
 				break;
 
@@ -123,8 +126,8 @@ void menu_update() {
 				
 				if (state_info(state)->coins >= 70) {
 					state_info(state)->coins = state_info(state)->coins - 70;
-					store_update(store, 100, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 100, -1, -1, -1, -1);				
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 30;		
 				}
 				break;
 
@@ -132,32 +135,33 @@ void menu_update() {
 				
 				if (state_info(state)->coins >= 140) {
 					state_info(state)->coins = state_info(state)->coins - 140;
-					store_update(store, 160, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 160, -1, -1, -1, -1);				
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 60;	
+
 				}
 				break;
 
 			case 160:
 				if (state_info(state)->coins >= 190) {
 					state_info(state)->coins = state_info(state)->coins - 190;
-					store_update(store, 250, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 250, -1, -1, -1, -1);
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 90;	
 				}
 				break;
 
 			case 250:
 				if (state_info(state)->coins >= 413) {
 					state_info(state)->coins = state_info(state)->coins - 413;
-					store_update(store, 500, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 500, -1, -1, -1, -1);
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 250;	
 				}
 				break;
 
 			case 500:
 				if (state_info(state)->coins >= 550) {
 					state_info(state)->coins = state_info(state)->coins - 550;
-					store_update(store, 1000, -1, -1, -1);
-					state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+					store_update(store, 1000, -1, -1, -1, -1);
+					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 500;	
 				}
 				break;
 
@@ -167,6 +171,121 @@ void menu_update() {
 
 		}
 
+		if ((get_page(menu) == 5) && IsKeyPressed(KEY_ENTER) && state_info(state)->spaceship->health < store_info(store, spaceshipHP) && state_info(state)->coins >= 15) {
+
+			state_info(state)->spaceship->health = state_info(state)->spaceship->health + 10;
+			state_info(state)->coins = state_info(state)->coins - 15;
+
+			if (state_info(state)->spaceship->health > store_info(store, spaceshipHP))
+				state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+			
+		}
+
+		if ((get_page(menu) == 4) && IsKeyPressed(KEY_ENTER)) {
+			
+			if (store_info(store, rifle) == 0) {
+				
+				if (state_info(state)->coins >= 100) {
+					store_prev_gun(store, store_info(store, selected_gun));
+					store_update(store, -1, 1, 100, 5, 9);
+					state_info(state)->coins = state_info(state)->coins - 100;
+					store_update_rifle(store, true);
+				}
+			}
+			else {
+				switch (store_get_prev_gun(store)) {
+					case 0:
+						store_prev_gun(store, store_info(store, selected_gun));
+						store_update(store, -1, 0, 50, 70, 15);
+						break;
+					case 1:
+						store_prev_gun(store, store_info(store, selected_gun));
+						store_update(store, -1, 1, 100, 5, 9);
+						break;
+					case 2:
+						store_prev_gun(store, store_info(store, selected_gun));
+						store_update(store, -1, 2, 25, 110, 50);
+						break;
+					default:
+						break;
+				}
+			}
+		}	
+
+		if ((get_page(menu) == 6) && IsKeyPressed(KEY_ENTER)) {
+			
+			if (store_info(store, shotgun) == 0) {
+
+				if (state_info(state)->coins >= 287) {
+					store_prev_gun(store, store_info(store, selected_gun));
+					store_update(store, -1, 2, 25, 115, 50);
+					state_info(state)->coins = state_info(state)->coins - 287;
+					store_update_shotgun(store, true);
+				}
+
+			}
+			else {
+				switch (store_get_second_prev_gun(store)) {
+				case 0:
+					store_update(store, -1, 0, 50, 70, 15);
+					break;
+				case 1:
+					store_update(store, -1, 1, 100, 5, 9);
+					break;
+				case 2:
+					store_update(store, -1, 2, 25, 110, 50);
+					break;
+				default:
+					break;
+				}
+			}	
+		}
+
+		if ((get_page(menu) == 8) && IsKeyPressed(KEY_ENTER)) {
+
+			switch (store_info(store, selected_gun)) {
+			case 0:
+				
+				if (state_info(state)->coins >= 10 && state_info(state)->spaceship->pistol_bullets < 50) {
+
+					state_info(state)->coins = state_info(state)->coins - 10;
+					state_info(state)->spaceship->pistol_bullets = state_info(state)->spaceship->pistol_bullets + 8;
+
+					if (state_info(state)->spaceship->pistol_bullets > 50)
+						state_info(state)->spaceship->pistol_bullets = 50;
+
+				}
+
+				break;
+			case 1:
+
+				if (state_info(state)->coins >= 20 && state_info(state)->spaceship->rifle_bullets < 100) {
+
+					state_info(state)->coins = state_info(state)->coins - 20;
+					state_info(state)->spaceship->rifle_bullets = state_info(state)->spaceship->rifle_bullets + 30;
+					
+					if (state_info(state)->spaceship->rifle_bullets > 100)
+						state_info(state)->spaceship->rifle_bullets = 100;
+
+				}
+				break;
+			case 2:
+				if (state_info(state)->coins >= 35 && state_info(state)->spaceship->shotgun_bullets < 25) {
+
+					state_info(state)->coins = state_info(state)->coins - 35;
+					state_info(state)->spaceship->shotgun_bullets = state_info(state)->spaceship->shotgun_bullets + 8;
+					
+					if (state_info(state)->spaceship->shotgun_bullets > 25)
+						state_info(state)->spaceship->shotgun_bullets = 25;
+
+				}
+				break;
+			default:
+				break;
+			}
+
+		}
+			
 		break;
 	case 3:
 		set_max_page(menu, 2);

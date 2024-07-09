@@ -18,7 +18,6 @@ Texture heart;
 
 Music background_music;
 
-
 void interface_init() {
 	// Αρχικοποίηση του παραθύρου
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game");
@@ -119,6 +118,20 @@ void interface_draw_frame(State state, Store store) {
 	else
 		DrawText(TextFormat("%d / %d", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH - 120, SCREEN_HEIGHT - 30, 20, GRAY);
 
+	switch (store_info(store, selected_gun)) {
+		case 0:
+			DrawText(TextFormat("Pistol: %d / %d BULLETS", state_info(state)->spaceship->pistol_bullets, store_info(store, bullets)), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+			break;
+		case 1:
+			DrawText(TextFormat("Rifle: %d / %d BULLETS", state_info(state)->spaceship->rifle_bullets, store_info(store, bullets)), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+			break;
+		case 2:
+			DrawText(TextFormat("Shotgun: %d / %d BULLETS", state_info(state)->spaceship->shotgun_bullets, store_info(store, bullets)), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+			break;
+		default:
+			break;
+	}
+
 	if (state_info(state)->paused) {
 		PauseMusicStream(background_music);
 		DrawText(
@@ -135,7 +148,7 @@ void interface_draw_frame(State state, Store store) {
 
 void draw_main_menu(Menu menu) {
 
-	DrawText("GAME IS NOT FINISHED DON'T PLAY", SCREEN_WIDTH/2 - 350, SCREEN_HEIGHT/2 + 300, 40, DARKGREEN);
+	DrawText("Version: 0.1 BETA | NOT FINISHED", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 300, 33, DARKGREEN);
 
 	DrawText("ADTChase", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 300, 70, DARKGREEN);
 
@@ -172,8 +185,8 @@ void draw_help_menu(Menu menu) {
 	if (get_page(menu) == 2) {
 		DrawText("< 2/2   ", SCREEN_WIDTH - 140, SCREEN_HEIGHT - 50, 40, DARKGREEN);
 
-		DrawText("To destroy each core you will need to\nupgrade your stats (damage, type of\ngun) which you can purchase through\nthe store using coins.", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 200, 40, BLUE);
-		DrawText("To get coins you will need to destroy\nasteroids. But be careful not to collide\nwith them or you will lose coins!", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 + 50, 40, BLUE);
+		DrawText("To destroy each core you will need to\nupgrade your stats (health, type of\ngun) which you can purchase through\nthe store using coins.", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 - 200, 40, BLUE);
+		DrawText("To get coins you will need to destroy\nthe core of each level! If you collide with\nasteroids you lose HP and if you die you\nlose all your coins!", SCREEN_WIDTH/2 - 400 , SCREEN_HEIGHT/2 + 50, 40, BLUE);
 	}
 
 	DrawText("Press [ALT] to go back.", 10, SCREEN_HEIGHT - 40, 20, DARKGREEN);
@@ -325,60 +338,263 @@ void draw_store_menu(Menu menu, State state, Store store) {
 		DrawText("Spaceship Upgrades", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 200, 30, BLUE);
 		DrawText("> > Gun Upgrades", SCREEN_WIDTH/2 + 180, SCREEN_HEIGHT/2 - 195, 25, GRAY);
 
+		//Get ready for the worst code ever written. But it works :)
+
+		if (store_info(store, spaceshipHP) < 500) 
+
+			switch (get_page(menu))
+			{
+			case 1:
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+				break;	
+			
+			case 3:
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+				break;
+			
+			case 5:
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, SKYBLUE);
+				break;
+
+			default:
+				break;
+			}
+
+		else
+			switch (get_page(menu))
+			{
+			case 1:
+				DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+				break;	
+			
+			case 3:
+				DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+				break;
+			
+			case 5:
+				DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+				DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 10, 25, SKYBLUE);
+				break;
+
+			default:
+				break;
+			}
+
+
 		switch (store_info(store, spaceshipHP)) {
 		case 50:
-			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("50HP > > 70HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("-30 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP /  %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 230, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 70:
-			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("70HP > > 100HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("-70 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP /  %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 230, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 100:
-			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("100HP > > 160HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("-140 Coins", SCREEN_WIDTH/2 + 60, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP /  %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 240, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 160:
-			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("160HP > > 250HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("-190 Coins", SCREEN_WIDTH/2 + 70, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP /  %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 240, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 250:
-			DrawText("--> ", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("250HP > > 500HP | ", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("-413 Coins", SCREEN_WIDTH/2 + 70, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP /  %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 255, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 500:
-			DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("500HP | ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
 			DrawText("MAX HP", SCREEN_WIDTH/2 + 5, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP / %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 255, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		case 1000:
-			DrawText("--> ", SCREEN_WIDTH/2 - 140, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
 			DrawText("1000HP ? ", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 25, ORANGE);
-			DrawText("NO WAY", SCREEN_WIDTH/2 + 15, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+			DrawText(" NO WAY", SCREEN_WIDTH/2 + 15, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+
+			DrawText(TextFormat("%dHP / %dHP | REGEN 10 HP | ", state_info(state)->spaceship->health, store_info(store, spaceshipHP)), SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 10, 25, ORANGE);
+			DrawText("-15 Coins", SCREEN_WIDTH/2 + 270, SCREEN_HEIGHT/2 - 10, 25, MAROON);
 			break;
 
 		default:
 			break;
 		}
 
-
 	}
 
+	//The following code is a COMPLETE MESS
 	if (get_page(menu) % 2 == 0) {
 		
 		DrawText("Gun Upgrades", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200, 30, BLUE);
 		DrawText("Spaceship Upgrades < <", SCREEN_WIDTH/2 - 400, SCREEN_HEIGHT/2 - 195, 25, GRAY);
+
+		switch (store_info(store, selected_gun)) {
+		case 0:
+			DrawText("Selected Gun: Pistol", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 - 140, 25, ORANGE);
+			DrawText("Rate of fire: slow | Bullets: 50 | Damage: 15", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 110, 20, ORANGE);
+			
+			DrawText(TextFormat("%d / %d BULLETS | +8 |", state_info(state)->spaceship->pistol_bullets, store_info(store, bullets)), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 30, 25, LIGHTGRAY);
+			DrawText("-10 Coins", SCREEN_WIDTH/2 + 225, SCREEN_HEIGHT/2 + 30, 25, MAROON);
+			break;
+			
+		case 1:
+			DrawText("Selected Gun: Rifle", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 - 140, 25, ORANGE);
+			DrawText("Rate of fire: really high | Bullets: 100 | Damage: 9", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 110, 20, ORANGE);
+
+			DrawText(TextFormat("%d / %d BULLETS | +30 |", state_info(state)->spaceship->rifle_bullets, store_info(store, bullets)), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 30, 25, LIGHTGRAY);
+			DrawText("-20 Coins", SCREEN_WIDTH/2 + 235, SCREEN_HEIGHT/2 + 30, 25, MAROON);
+			break;
+		case 2:
+			DrawText("Selected Gun: Shotgun", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 - 140, 25, ORANGE);
+			DrawText("Rate of fire: really slow | Bullets: 25 | Damage: 50", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 110, 20, ORANGE);
+
+			DrawText(TextFormat("%d / %d BULLETS | +8 |", state_info(state)->spaceship->shotgun_bullets, store_info(store, bullets)), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 30, 25, LIGHTGRAY);
+			DrawText("-35 Coins", SCREEN_WIDTH/2 + 225, SCREEN_HEIGHT/2 + 30, 25, MAROON);
+			break;
+		default:
+			break;
+		}
+		//I would like to inform whoever is reading this, I have no idea how this works.
+		if (store_info(store, rifle) == 0) {
+			DrawText("Rifle      |", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 50, 25, LIGHTGRAY);
+			DrawText("-100 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, MAROON);
+		}
+		else {
+			switch (store_get_prev_gun(store)) {
+			case 0:
+				DrawText("Pistol    | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 50, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, LIME);
+				break;
+			case 1:
+				DrawText("Rifle      | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 50, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, LIME);
+				break;
+			case 2:
+				DrawText("Shotgun | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 50, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 50, 25, LIME);
+				break;
+			default:
+				break;
+			}
+		}
+	
+		if (store_info(store, shotgun) == 0) {
+			DrawText("Shotgun |", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 10, 25, LIGHTGRAY);
+			DrawText("-287 Coins", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 10, 25, MAROON);
+		}
+		else {
+			switch (store_get_second_prev_gun(store)) {
+			case 0:
+				DrawText("Pistol    | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 10, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 10, 25, LIME);
+				break;
+			case 1:
+				DrawText("Rifle      | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 10, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 10, 25, LIME);
+				break;
+			case 2:
+				DrawText("Shotgun | ", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 - 10, 25, LIGHTGRAY);
+				DrawText("BOUGHT", SCREEN_WIDTH/2 + 50, SCREEN_HEIGHT/2 - 10, 25, LIME);
+				break;
+			default:
+				break;
+			}
+		}
+
+		switch (get_page(menu)) {
+		case 2:
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 + 30, 25, GRAY);
+			break;	
+		
+		case 4:
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 50, 25, SKYBLUE);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 + 30, 25, GRAY);
+			
+			if (store_info(store, rifle) == 1) {
+				switch (store_get_prev_gun(store)) {
+				case 0:
+					DrawText("    Rate of fire: slow\nBullets: 50 | Damage: 15", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				case 1:
+					DrawText("    Rate of fire: high\nBullets: 100 | Damage: 9", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				case 2:
+					DrawText("Rate of fire: really slow\nBullets: 30 | Damage: 50", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				default:
+					break;
+				}
+			}
+			else {
+				DrawText("    Rate of fire: high\nBullets: 100 | Damage: 9", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+			}
+
+			break;
+		case 6:
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 10, 25, SKYBLUE);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 + 30, 25, GRAY);
+
+			if (store_info(store, shotgun) == 1) {
+				switch (store_get_second_prev_gun(store)) {
+				case 0:
+					DrawText("    Rate of fire: slow\nBullets: 50 | Damage: 15", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				case 1:
+					DrawText("    Rate of fire: high\nBullets: 100 | Damage: 9", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				case 2 ... 3:
+					DrawText("Rate of fire: really slow\nBullets: 30 | Damage: 50", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+					break;
+				default:
+					break;
+				}
+			}
+			else {
+				DrawText("Rate of fire: really slow\nBullets: 30 | Damage: 50", SCREEN_WIDTH/2 + 190, SCREEN_HEIGHT/2 - 45, 20, BEIGE);
+			}
+
+			break;
+		case 8:
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 50, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 10, 25, GRAY);
+			DrawText("--> ", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 + 30, 25, SKYBLUE);
+			break;
+
+		default:
+			break;
+		}
+
 	}
 
 
@@ -393,7 +609,7 @@ void interface_draw_menu(Menu menu, State state, Store store) {
 
 	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
 
-	switch (active_menu(menu)) 	{
+	switch (active_menu(menu)) {
 	case 0:
 		draw_main_menu(menu);
 		break;

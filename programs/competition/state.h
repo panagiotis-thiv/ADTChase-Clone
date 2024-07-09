@@ -41,6 +41,11 @@ typedef struct object {
 	double size;				// Μέγεθος (pixels)
 	Vector2 orientation;		// Κατεύθυνση (μόνο για διαστημόπλοιο)
 	int health;
+
+	int pistol_bullets;
+	int rifle_bullets;
+	int shotgun_bullets;
+	
 }* Object;
 
 // Γενικές πληροφορίες για την κατάσταση του παιχνιδιού
