@@ -7,35 +7,94 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "raylib.h"
 #include "interface.h"
 #include "state.h"
 #include "menu.h"
 #include "level.h"
-#include "store.h"
+#include "global_stats.h"
 
-State level1;
-State level2;
-State level3;
-State level4;
-State level5;
+State st_level1;
+State st_level2;
+State st_level3;
+State st_level4;
+
+State eliminate;
+State hol; //(hol = higher or lower)
+State boss;
+
+Levels level1;
+Levels level2;
+Levels level3;
+Levels level4;
 
 State state;
 Menu menu;
-LvlStats level;
-Store store;
-
 Texture background2;
+
+GlobalStats stats;
+Gun gamble;
 
 int selected = 1;
 
 float messageTimer = 0.0f;       	// Timer for how long the message has been displayed
 const float displayDuration = 0.8f; // Duration to display the message (in seconds)
 
+float coreSpawnTimer = 0.0f;
+float coreHideTimer = 0.0f;
+float coreTPTimer = 0.0f;
+
+const float coreSpawnDelay = 10.0f;
+
 bool play = false;
 
+bool play_eliminate = false;
+bool playing_eliminate = false;
+bool reset_elimate = false;
+
+bool play_hol = false;
+bool playing_hol = false;
+bool reset_hol = false;
+
+void UpdateUserInput() {
+
+	 	int key = GetKeyPressed();
+
+		//Για αυτό το σημείο χρειάστηκε αρκετό ψάξιμο, σίγουρα δεν θα το έβρισκα μόνος μου...
+        if (key >= '0' && key <= '9' && gs_user_input(stats)->charCount < 4) {
+            gs_user_input(stats)->inputBuffer[gs_user_input(stats)->charCount++] = (char)key;
+            gs_user_input(stats)->inputBuffer[gs_user_input(stats)->charCount] = '\0';
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE) && gs_user_input(stats)->charCount > 0) {
+            gs_user_input(stats)->inputBuffer[--gs_user_input(stats)->charCount] = '\0';
+        }
+
+        if (IsKeyPressed(KEY_ENTER)) { 
+            if (gs_user_input(stats)->charCount > 0) {
+                gs_user_input(stats)->coinsEntered = atoi(gs_user_input(stats)->inputBuffer);
+                gs_user_input(stats)->isEnteringInput = false;
+                memset(gs_user_input(stats)->inputBuffer, 0, sizeof(gs_user_input(stats)->inputBuffer));
+                gs_user_input(stats)->charCount = 0;
+
+				if (gs_user_input(stats)->coinsEntered > gs_player_info(stats)->coins) 
+					gs_user_input(stats)->coinsEntered = 0;
+            }
+        }
+
+		if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_LEFT_ALT)) { 
+            gs_user_input(stats)->isEnteringInput = false;
+            memset(gs_user_input(stats)->inputBuffer, 0, sizeof(gs_user_input(stats)->inputBuffer));
+            gs_user_input(stats)->charCount = 0;
+        }
+}
+
 void menu_update() {
+	
+	if (gs_user_input(stats)->isEnteringInput)
+		UpdateUserInput();
 
 	//Changes which option of the menu is selected 
 	if (selected_menu(menu) != 0) {
@@ -46,13 +105,45 @@ void menu_update() {
 			prev_menu(menu);
 	}
 
-	//Goes to the main menu
+	//Goes to the previous menu (mostly the main menu)
 	if (IsKeyPressed(KEY_LEFT_ALT)) {
-		set_active_menu(menu, 0);
-		set_page(menu, 1);
-		set_selected(menu, selected);
-		selected = 1;
-		play = false;
+
+		if (active_menu(menu) != 1 || get_page(menu) <= 6) {
+			if (!play) {
+				set_active_menu(menu, 0);
+				set_page(menu, 1);
+				set_selected(menu, selected);
+				//selected = 1;
+			} else {
+				set_page(menu, state_info(state)->level_number);
+				play = false;
+			}
+		}
+		else {
+			gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->prev_gun;
+			if (play_eliminate) {
+				set_page(menu, state_info(state)->level_number+1);
+				playing_eliminate = true;
+				play_eliminate = false;
+				if (state_info(state)->win && state_info(state)->level_number == 6) {
+					gs_player_info(stats)->coins +=	state_info(state)->eliminate_reward;
+					gs_user_input(stats)->coinsEntered = 0;
+					reset_elimate = true;
+					playing_eliminate = false;
+				}
+			} else if (play_hol) {
+				set_page(menu, state_info(state)->level_number+1);
+				playing_hol = true;
+				play_hol = false;
+				if (state_info(state)->win && state_info(state)->level_number == 7) {
+					gs_player_info(stats)->coins +=	state_info(state)->hol_reward;
+					gs_user_input(stats)->coinsEntered = 0;
+					reset_hol = true;
+					playing_hol = false;
+				}
+			} else
+				set_page(menu, 6);
+		}
 	}
 
 	//Sets the selected menu as the active one if player presses enter.
@@ -88,21 +179,30 @@ void menu_update() {
 
 	switch (active_menu(menu)) {
 	case 1:
-		set_max_page(menu, 5);
+		set_max_page(menu, 9);
 		break;
 	case 2:
-		set_max_page(menu, 8);
+		set_max_page(menu, 9);
 
-		if (IsKeyPressed(KEY_LEFT))
-			set_page(menu, 1);
+		if (IsKeyPressed(KEY_LEFT)) {
+			if (get_page(menu) == 9)
+				set_page(menu, 2);
+			else
+				set_page(menu, 1);
+		}
 
-		if (IsKeyPressed(KEY_RIGHT))
-			set_page(menu, 2);
+		if (IsKeyPressed(KEY_RIGHT)) {
+			if (get_page(menu) == 1 || get_page(menu) == 3 || get_page(menu) == 5)
+				set_page(menu, 2);
+			else
+				set_page(menu, 9);
+		}
+		
 
 		if (IsKeyPressed(KEY_DOWN))
 			set_page(menu, get_page(menu) + 2);
 
-		if (IsKeyPressed(KEY_UP) && get_page(menu) != 2) 
+		if (IsKeyPressed(KEY_UP) && get_page(menu) != 2 && get_page(menu) != 9) 
 			set_page(menu, get_page(menu) - 2);
 
 		if (get_page(menu) < 1)
@@ -113,55 +213,55 @@ void menu_update() {
 
 		if ((get_page(menu) == 3) && IsKeyPressed(KEY_ENTER)) {
 			
-			switch (store_info(store, spaceshipHP)) {
+			switch (gs_store_info(stats)->spaceship_hp) {
 			case 50:
-				if (state_info(state)->coins >= 30) {
-					state_info(state)->coins = state_info(state)->coins - 30;
-					store_update(store, 70, -1, -1, -1, -1);			
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 20;	
+				if (gs_player_info(stats)->coins >= 30) {
+					gs_player_info(stats)->coins -= 30;
+					gs_store_info(stats)->spaceship_hp = 70;			
+					gs_player_info(stats)->spaceship_hp += 20;	
 				}
 				break;
 
 			case 70:
 				
-				if (state_info(state)->coins >= 70) {
-					state_info(state)->coins = state_info(state)->coins - 70;
-					store_update(store, 100, -1, -1, -1, -1);				
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 30;		
+				if (gs_player_info(stats)->coins >= 70) {
+					gs_player_info(stats)->coins -= 70;
+					gs_store_info(stats)->spaceship_hp = 100;			
+					gs_player_info(stats)->spaceship_hp += 30;		
 				}
 				break;
 
 			case 100:
 				
-				if (state_info(state)->coins >= 140) {
-					state_info(state)->coins = state_info(state)->coins - 140;
-					store_update(store, 160, -1, -1, -1, -1);				
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 60;	
+				if (gs_player_info(stats)->coins >= 140) {
+					gs_player_info(stats)->coins -= 140;
+					gs_store_info(stats)->spaceship_hp = 160;			
+					gs_player_info(stats)->spaceship_hp += 60;	
 
 				}
 				break;
 
 			case 160:
-				if (state_info(state)->coins >= 190) {
-					state_info(state)->coins = state_info(state)->coins - 190;
-					store_update(store, 250, -1, -1, -1, -1);
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 90;	
+				if (gs_player_info(stats)->coins >= 190) {
+					gs_player_info(stats)->coins -= 190;
+					gs_store_info(stats)->spaceship_hp = 250;			
+					gs_player_info(stats)->spaceship_hp += 90;	
 				}
 				break;
 
 			case 250:
-				if (state_info(state)->coins >= 413) {
-					state_info(state)->coins = state_info(state)->coins - 413;
-					store_update(store, 500, -1, -1, -1, -1);
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 250;	
+				if (gs_player_info(stats)->coins >= 413) {
+					gs_player_info(stats)->coins -= 413;
+					gs_store_info(stats)->spaceship_hp = 500;			
+					gs_player_info(stats)->spaceship_hp += 250;	
 				}
 				break;
 
 			case 500:
-				if (state_info(state)->coins >= 550) {
-					state_info(state)->coins = state_info(state)->coins - 550;
-					store_update(store, 1000, -1, -1, -1, -1);
-					state_info(state)->spaceship->health = state_info(state)->spaceship->health + 500;	
+				if (gs_player_info(stats)->coins >= 550) {
+					gs_player_info(stats)->coins -= 500;
+					gs_store_info(stats)->spaceship_hp = 1000;			
+					gs_player_info(stats)->spaceship_hp += 500;	
 				}
 				break;
 
@@ -171,119 +271,79 @@ void menu_update() {
 
 		}
 
-		if ((get_page(menu) == 5) && IsKeyPressed(KEY_ENTER) && state_info(state)->spaceship->health < store_info(store, spaceshipHP) && state_info(state)->coins >= 15) {
+		if ((get_page(menu) == 5) && IsKeyPressed(KEY_ENTER) && gs_player_info(stats)->spaceship_hp < gs_store_info(stats)->spaceship_hp && gs_player_info(stats)->coins >= 15) {
 
-			state_info(state)->spaceship->health = state_info(state)->spaceship->health + 10;
-			state_info(state)->coins = state_info(state)->coins - 15;
+			gs_player_info(stats)->spaceship_hp += 10;
+			gs_player_info(stats)->coins -= 15;
 
-			if (state_info(state)->spaceship->health > store_info(store, spaceshipHP))
-				state_info(state)->spaceship->health = store_info(store, spaceshipHP);
+			if (gs_player_info(stats)->spaceship_hp > gs_store_info(stats)->spaceship_hp)
+				gs_player_info(stats)->spaceship_hp = gs_store_info(stats)->spaceship_hp;
 			
 		}
 
 		if ((get_page(menu) == 4) && IsKeyPressed(KEY_ENTER)) {
 			
-			if (store_info(store, rifle) == 0) {
+			if (!gs_store_info(stats)->rifle) {
 				
-				if (state_info(state)->coins >= 100) {
-					store_prev_gun(store, store_info(store, selected_gun));
-					store_update(store, -1, 1, 100, 5, 9);
-					state_info(state)->coins = state_info(state)->coins - 100;
-					store_update_rifle(store, true);
+				if (gs_player_info(stats)->coins >= 100) {
+					gs_player_info(stats)->coins -= 100;
+					gs_store_info(stats)->rifle = true;
+					gs_store_info(stats)->slot1 = gs_guns_info(stats)->selected_gun;
+					gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->rifle;
 				}
 			}
 			else {
-				switch (store_get_prev_gun(store)) {
-					case 0:
-						store_prev_gun(store, store_info(store, selected_gun));
-						store_update(store, -1, 0, 50, 70, 15);
-						break;
-					case 1:
-						store_prev_gun(store, store_info(store, selected_gun));
-						store_update(store, -1, 1, 100, 5, 9);
-						break;
-					case 2:
-						store_prev_gun(store, store_info(store, selected_gun));
-						store_update(store, -1, 2, 25, 110, 50);
-						break;
-					default:
-						break;
-				}
+				gs_guns_info(stats)->prev_gun = gs_guns_info(stats)->selected_gun;
+				gs_guns_info(stats)->selected_gun = gs_store_info(stats)->slot1;
+				gs_store_info(stats)->slot1 = gs_guns_info(stats)->prev_gun;
 			}
 		}	
 
 		if ((get_page(menu) == 6) && IsKeyPressed(KEY_ENTER)) {
 			
-			if (store_info(store, shotgun) == 0) {
+			if (!gs_store_info(stats)->sniper) {
 
-				if (state_info(state)->coins >= 287) {
-					store_prev_gun(store, store_info(store, selected_gun));
-					store_update(store, -1, 2, 25, 115, 50);
-					state_info(state)->coins = state_info(state)->coins - 287;
-					store_update_shotgun(store, true);
+				if (gs_player_info(stats)->coins >= 287) {
+					gs_player_info(stats)->coins -= 287;
+					gs_store_info(stats)->sniper = true;
+					gs_store_info(stats)->slot2 = gs_guns_info(stats)->selected_gun;
+					gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->sniper;
 				}
 
 			}
 			else {
-				switch (store_get_second_prev_gun(store)) {
-				case 0:
-					store_update(store, -1, 0, 50, 70, 15);
-					break;
-				case 1:
-					store_update(store, -1, 1, 100, 5, 9);
-					break;
-				case 2:
-					store_update(store, -1, 2, 25, 110, 50);
-					break;
-				default:
-					break;
-				}
+				gs_guns_info(stats)->prev_gun = gs_guns_info(stats)->selected_gun;
+				gs_guns_info(stats)->selected_gun = gs_store_info(stats)->slot2;
+				gs_store_info(stats)->slot2 = gs_guns_info(stats)->prev_gun;
 			}	
 		}
 
 		if ((get_page(menu) == 8) && IsKeyPressed(KEY_ENTER)) {
+			
 
-			switch (store_info(store, selected_gun)) {
-			case 0:
-				
-				if (state_info(state)->coins >= 10 && state_info(state)->spaceship->pistol_bullets < 50) {
+			if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->pistol && gs_player_info(stats)->coins >= 10 && gs_guns_info(stats)->pistol->bullets < 50) {
+				gs_player_info(stats)->coins -= 10;
+				gs_guns_info(stats)->pistol->bullets += 8;
 
-					state_info(state)->coins = state_info(state)->coins - 10;
-					state_info(state)->spaceship->pistol_bullets = state_info(state)->spaceship->pistol_bullets + 8;
-
-					if (state_info(state)->spaceship->pistol_bullets > 50)
-						state_info(state)->spaceship->pistol_bullets = 50;
-
-				}
-
-				break;
-			case 1:
-
-				if (state_info(state)->coins >= 20 && state_info(state)->spaceship->rifle_bullets < 100) {
-
-					state_info(state)->coins = state_info(state)->coins - 20;
-					state_info(state)->spaceship->rifle_bullets = state_info(state)->spaceship->rifle_bullets + 30;
-					
-					if (state_info(state)->spaceship->rifle_bullets > 100)
-						state_info(state)->spaceship->rifle_bullets = 100;
-
-				}
-				break;
-			case 2:
-				if (state_info(state)->coins >= 35 && state_info(state)->spaceship->shotgun_bullets < 25) {
-
-					state_info(state)->coins = state_info(state)->coins - 35;
-					state_info(state)->spaceship->shotgun_bullets = state_info(state)->spaceship->shotgun_bullets + 8;
-					
-					if (state_info(state)->spaceship->shotgun_bullets > 25)
-						state_info(state)->spaceship->shotgun_bullets = 25;
-
-				}
-				break;
-			default:
-				break;
+				if (gs_guns_info(stats)->pistol->bullets > 50)
+					gs_guns_info(stats)->pistol->bullets = 50;
 			}
 
+			if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->rifle && gs_player_info(stats)->coins >= 20 && gs_guns_info(stats)->rifle->bullets < 100) {
+				gs_player_info(stats)->coins -= 20;
+				gs_guns_info(stats)->rifle->bullets += 30;
+
+				if (gs_guns_info(stats)->rifle->bullets > 100)
+					gs_guns_info(stats)->rifle->bullets = 100;
+			}
+
+			if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->sniper && gs_player_info(stats)->coins >= 35 && gs_guns_info(stats)->sniper->bullets < 25) {
+				gs_player_info(stats)->coins -= 35;
+				gs_guns_info(stats)->sniper->bullets += 8;
+
+				if (gs_guns_info(stats)->sniper->bullets > 25)
+					gs_guns_info(stats)->sniper->bullets = 25;
+			}
 		}
 			
 		break;
@@ -296,63 +356,206 @@ void menu_update() {
 	}
 	
 	if (active_menu(menu) != 2) {
-		if (IsKeyPressed(KEY_LEFT))
-			set_page_prev(menu);
 
-		if (IsKeyPressed(KEY_RIGHT))
-			set_page_next(menu);
+		if (active_menu(menu) != 1 || get_page(menu) != 7)
+			if (IsKeyPressed(KEY_LEFT))
+				set_page_prev(menu);
+
+
+		if (active_menu(menu) != 1 || get_page(menu) != 6)
+			if (IsKeyPressed(KEY_RIGHT))
+				set_page_next(menu);
+
 	}
 
 	if (active_menu(menu) == 1 && IsKeyPressed(KEY_ENTER)) {
 		
-		switch (get_page(menu)) {
-		case 1:			
-			state = level1;
-			play = true;
-			break;
-		case 2:
-			// if (level2 == NULL) {
-			// 	level = level_init();
-			// 	level2 = state_create(level, store);
-			// }
+		if (!play) {
+			switch (get_page(menu)) {
+			case 1:			
+				state = st_level1;
+				play = true;
+				break;
+			case 2:
+				if (gs_levels_info(stats)->level2 == 1 || gs_levels_info(stats)->level2 == 2) {
 
-			// state = level2;
-			// play = true;
-			break;
-		case 3:
-			// if (level3 == NULL) {
-			// 	level = level_init();
-			// 	level3 = state_create(level, store);
-			// }
+					if (st_level2 == NULL) {
+						level2 = level_create(100, 25, 2, 1.35, 150, 250, 5);
+						st_level2 = state_create(level2, stats);
+					}
 
-			// state = level3;
-			// play = true;
-			break;
-		case 4:
-			// if (level4 == NULL) {
-			// 	level = level_init();
-			// 	level4 = state_create(level, store);
-			// }
+					state = st_level2;
+					play = true;
+				}
+				break;
+			case 3:
+				if (gs_levels_info(stats)->level3 == 1 || gs_levels_info(stats)->level3 == 2) {
+					
+					if (st_level3 == NULL) {
+						level3 = level_create(500, 10, 3, 0.5, 20, 425, 4);
+						st_level3 = state_create(level3, stats);
+					}
 
-			// state = level4;
-			// play = true;
-			break;
-		case 5:
-			// if (level5 == NULL) {
-			// 	level = level_init();
-			// 	level5 = state_create(level, store);
-			// }
+					state = st_level3;
+					play = true;
+				}
+				break;
+			case 4:
+				if (gs_levels_info(stats)->level4 == 1 || gs_levels_info(stats)->level4 == 2) {
 
-			// state = level5;
-			// play = true;
-			break;
-		default:
-			break;
+					if (st_level4 == NULL) {
+						level4 = level_create(19, 5, 4, 2, 150, 500, 2);
+						st_level4 = state_create(level4, stats);
+					}
+
+					state = st_level4;
+					play = true;
+				}
+				break;
+			case 5:
+				if (gs_levels_info(stats)->level4 == 1) {
+					// state = boss;
+					// play = true;
+				}
+				break;
+			//Γιατί όχι το παρακάτω case εδώ αλλά στο τέλος αυτής της if;
+			//case 6:
+			// 	if (gs_levels_info(stats)->level2 == 2)
+			//	break;
+			}
+		}	
+
+		if (get_page(menu) == 7 && gs_user_input(stats)->coinsEntered > 0 && !play_eliminate && !playing_hol) {
+			if (gamble == NULL) 
+				gamble = gs_gun_create(999, 30, 100);
+			
+			if (gs_guns_info(stats)->selected_gun != gamble) {
+				gs_guns_info(stats)->prev_gun = gs_guns_info(stats)->selected_gun;
+				gs_guns_info(stats)->selected_gun = gamble;
+			}
+			
+			if (eliminate == NULL) 
+				eliminate = state_create_eliminate(stats);
+			
+			if (reset_elimate && !playing_eliminate) {
+				state_destroy(eliminate);
+				eliminate = state_create_eliminate(stats);
+				reset_elimate = false;
+			}
+
+			if (!playing_eliminate) 
+				gs_player_info(stats)->coins -= gs_user_input(stats)->coinsEntered;
+
+			state = eliminate;
+			play_eliminate = true;
 		}
 
+		if (get_page(menu) == 8 && (!playing_eliminate && !playing_hol))
+			gs_user_input(stats)->isEnteringInput = true;
+
+		if (get_page(menu) == 9 && gs_user_input(stats)->coinsEntered > 0 && !play_hol && !playing_eliminate) {
+			if (gamble == NULL) 
+				gamble = gs_gun_create(999, 30, 100);
+			
+			if (gs_guns_info(stats)->selected_gun != gamble) {
+				gs_guns_info(stats)->prev_gun = gs_guns_info(stats)->selected_gun;
+				gs_guns_info(stats)->selected_gun = gamble;
+			}
+			
+			if (hol == NULL) 
+				hol = state_create_hol(stats);
+			
+			if (reset_hol && !playing_hol) {
+				state_destroy(hol);
+				hol = state_create_hol(stats);
+				reset_hol = false;
+			}
+
+			if (!playing_hol) 
+				gs_player_info(stats)->coins -= gs_user_input(stats)->coinsEntered;
+			
+			state = hol;
+			play_hol = true;
+		}
+
+		//Γιατί κάθε φορά που πάταγα enter, και τα προηγούμενα ήταν μετά από αυτό το case, ήταν σαν πάταγα enter 2 φορές συνεχόμενα
+		if (get_page(menu) == 6 && gs_levels_info(stats)->level2 == 2 && !play) 
+			set_page(menu, 7);
+	}
+}
+
+void check_win() {
+
+	if (state_info(state)->paused && state_info(state)->win) {
+
+		switch (state_info(state)->level_number)
+		{
+		case 1:
+			gs_levels_info(stats)->level1++;
+			gs_levels_info(stats)->level2++;
+			break;
+		case 2:
+			gs_levels_info(stats)->level2++;
+			gs_levels_info(stats)->level3++;
+			break;
+		case 3:
+			gs_levels_info(stats)->level3++;
+			gs_levels_info(stats)->level4++;
+			break;
+		case 4:
+			gs_levels_info(stats)->level4++;
+			gs_levels_info(stats)->level5++;
+			break;
+		case 5:
+			gs_levels_info(stats)->level5++;
+			break;
+		}
+		
+		state_info(state)->win = false;
 	}
 
 }
+
+
+void check_coreTime() {
+
+	if (!state_info(state)->win && (!state_info(state)->paused || IsKeyDown(KEY_N))) {
+
+		if (!state_info(state)->core)
+			coreSpawnTimer += GetFrameTime();
+		
+		if (coreSpawnTimer > coreSpawnDelay) {
+			state_info(state)->spawn_core = true;
+			coreSpawnTimer = 0.0f;
+		}
+		
+		if (state_info(state)->core) {
+
+			if (!state_info(state)->isCoreHidden)
+				coreHideTimer += GetFrameTime();
+			
+			if (state_info(state)->isCoreHidden)
+				coreTPTimer += GetFrameTime();
+		}
+
+		if (state_info(state)->isCoreHidden) 
+			coreHideTimer = 0.0f;
+
+		if (coreHideTimer > 6.0f) 
+			state_info(state)->hide_core = true;	
+
+		if (coreTPTimer > 4.0f) {
+			state_info(state)->tp_core = true;
+			coreTPTimer = 0.0f;
+		}
+	}
+	else if (!state_info(state)->paused || IsKeyDown(KEY_N)) {
+		coreSpawnTimer = 0.0f;
+		coreHideTimer = 0.0f;
+		coreTPTimer = 0.0f;
+	}
+}	
+
 	
 void check_drawCoinsReward() {
 
@@ -375,22 +578,35 @@ void update_and_draw() {
 	menu_update();
 
 	if (play) {
-		state_update(state, &keys, menu);
+		state_update(state, &keys, menu);	
 		check_drawCoinsReward();
-		interface_draw_frame(state, store);
+		check_coreTime();
+		check_win();
+		interface_draw_frame(state, stats);
+	} else if (play_eliminate) {
+		state_update_eliminate(state, &keys, menu);	
+		interface_draw_frame(state, stats);
+	} else if (play_hol) {
+		state_update_hol(state, &keys, menu);
+		interface_draw_frame(state, stats);
 	}
-	else
-		interface_draw_menu(menu, state, store);
+ 	else
+		interface_draw_menu(menu, state, stats);
 }
 
 int main() {
-	level = level_init();
-	store = store_init();
-	level1 = state_create(level, store);
-	state = level1;
+	level1 = level_create(50, 5, 1, 1, 50, 100, 3);
+	stats = gs_create();
+	st_level1 = state_create(level1, stats);
+	state = st_level1;
 
 	menu = menu_create(3);
 	interface_init();
+	
+	//For testing
+	// gs_levels_info(stats)->level2 = 2;
+	// gs_levels_info(stats)->level3 = 1;
+	// gs_levels_info(stats)->level4 = 1;
 
 	// Η κλήση αυτή καλεί συνεχόμενα την update_and_draw μέχρι ο χρήστης να κλείσει το παράθυρο
 	start_main_loop(update_and_draw);

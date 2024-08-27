@@ -1,18 +1,22 @@
 #pragma once
 
-typedef struct levels* LvlStats;
+typedef struct level_stats {
 
-typedef enum {
+    int asteroid_hp;        
+    int reward;                 //Max amount of coins obtained from destroying an asteroid
+    int level_no;               
+    float speed_factor;    
+}* LevelStats;
 
-    asteroid_hp         = 100,
-    asteroid_speed      = 200,
-    reward              = 300,            
-    passive_asteroids   = 400
+typedef struct core_info {
+	int hp;
+    int speed;
+    int reward;  
+}* CoreInfo;
 
-} LvLSetting;
+typedef struct levels* Levels;
+ 
+Levels level_create(int asteroid_hp, int reward, int level_no, float speed_factor, int core_hp, int core_reward, int core_speed);
 
-LvlStats level_init();
-
-int level_info(LvlStats level, LvLSetting setting);
-
-void level_update(LvlStats level, int asteroid_hp, int asteroid_speed, int spaceship_hp, int reward, bool passive_asteroids);
+LevelStats level_stats(Levels level);
+CoreInfo level_core_info(Levels level);

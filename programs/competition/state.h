@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "ADTList.h"
 #include "level.h"
-#include "store.h"
+#include "global_stats.h"
 
 // Χαρακτηριστικά αντικειμένων
 #define ASTEROID_NUM 6
@@ -26,7 +26,7 @@
 #define SCREEN_HEIGHT 700	// Υψος της οθόνης
 
 typedef enum {
-	SPACESHIP, ASTEROID, BULLET
+	SPACESHIP, ASTEROID, BULLET, CORE, HIDDEN
 } ObjectType;
 
 typedef enum {
@@ -41,21 +41,49 @@ typedef struct object {
 	double size;				// Μέγεθος (pixels)
 	Vector2 orientation;		// Κατεύθυνση (μόνο για διαστημόπλοιο)
 	int health;
-
-	int pistol_bullets;
-	int rifle_bullets;
-	int shotgun_bullets;
 	
 }* Object;
+
+typedef struct reward_message{
+	//Eliminate
+    float rewardValue;
+    Vector2 position;
+	//Higher or lower
+	int asteroid;
+}* RewardMessage;
 
 // Γενικές πληροφορίες για την κατάσταση του παιχνιδιού
 typedef struct state_info {
 	Object spaceship;				// πληροφορίες για τη το διαστημόπλοιο
 	bool paused;					// true αν το παιχνίδι είναι paused
+
 	int coins;						// το τρέχον σκορ
 	bool drawCoinsReward;
 	int coinsReward;
 	Vector2 coinsPos;
+	
+	bool spawn_core; 				//Άμα πρέπει να δημιουργηθεί το core
+	bool tp_core; 					//Άμα πρέπει να ξανα εμφανιστεί κοντά στον παίχτη το core
+	bool hide_core; 				//Άμα το core πρέπει να "κρυφτεί"
+
+	bool core; 						//Άμα υπάρχει core
+	bool isCoreHidden; 				//Άμα το core είναι κρυμμένο.
+
+	bool win; 						//Άμα το core έχει καταστραφεί τότε το state τελειώνει
+
+	int level_number;
+	
+	//Eliminate Message Info
+	List rewardMessages;
+	float eliminate_reward;
+	bool eliminate;
+
+	//Higher or Lower
+	bool hol;
+	float hol_multiplier;
+	int hol_round;
+	float hol_reward;
+
 }* StateInfo;
 
 // Πληροφορίες για το ποια πλήκτρα είναι πατημένα
@@ -75,7 +103,7 @@ typedef struct state* State;
 
 // Δημιουργεί και επιστρέφει την αρχική κατάσταση του παιχνιδιού
 
-State state_create(LvlStats level, Store store);
+State state_create(Levels level, GlobalStats stats);
 
 // Επιστρέφει τις βασικές πληροφορίες του παιχνιδιού στην κατάσταση state
 
@@ -95,3 +123,11 @@ void state_update(State state, KeyState keys, Menu menu);
 // Καταστρέφει την κατάσταση state ελευθερώνοντας τη δεσμευμένη μνήμη.
 
 void state_destroy(State state);
+
+State state_create_eliminate(GlobalStats stats);
+
+void state_update_eliminate(State state, KeyState keys, Menu menu);
+
+State state_create_hol(GlobalStats stats);
+
+void state_update_hol(State state, KeyState keys, Menu menu);
