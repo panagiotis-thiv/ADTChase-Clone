@@ -5,6 +5,7 @@
 #include "ADTList.h"
 #include "level.h"
 #include "global_stats.h"
+#include "ADTVector.h"
 
 // Χαρακτηριστικά αντικειμένων
 #define ASTEROID_NUM 6
@@ -26,7 +27,7 @@
 #define SCREEN_HEIGHT 700	// Υψος της οθόνης
 
 typedef enum {
-	SPACESHIP, ASTEROID, BULLET, CORE, HIDDEN
+	SPACESHIP, ASTEROID, BULLET, CORE, HIDDEN, BOSS_SPACESHIP
 } ObjectType;
 
 typedef enum {
@@ -43,6 +44,8 @@ typedef struct object {
 	int health;
 	
 }* Object;
+
+Object create_object(ObjectType type, Vector2 position, Vector2 speed, Vector2 orientation, double size, int health);
 
 typedef struct reward_message{
 	//Eliminate
@@ -66,6 +69,10 @@ typedef struct state_info {
 	bool tp_core; 					//Άμα πρέπει να ξανα εμφανιστεί κοντά στον παίχτη το core
 	bool hide_core; 				//Άμα το core πρέπει να "κρυφτεί"
 
+	float coreSpawnTimer;
+	float coreHideTimer;
+	float coreTPTimer;
+	
 	bool core; 						//Άμα υπάρχει core
 	bool isCoreHidden; 				//Άμα το core είναι κρυμμένο.
 
@@ -114,6 +121,8 @@ StateInfo state_info(State state);
 // γωνία top_left και κάτω δεξιά bottom_right.
 
 List state_objects(State state, Vector2 top_left, Vector2 bottom_right);
+
+void vector_swap(Vector vec, int pos1, int pos2);
 
 // Ενημερώνει την κατάσταση state του παιχνιδιού μετά την πάροδο 1 frame.
 // Το keys περιέχει τα πλήκτρα τα οποία ήταν πατημένα κατά το frame αυτό.

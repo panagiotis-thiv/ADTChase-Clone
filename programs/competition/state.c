@@ -27,10 +27,9 @@ struct state {
 	GlobalStats stats;
 };
 
-
 // Δημιουργεί και επιστρέφει ένα αντικείμενο
 
-static Object create_object(ObjectType type, Vector2 position, Vector2 speed, Vector2 orientation, double size, int health) {
+Object create_object(ObjectType type, Vector2 position, Vector2 speed, Vector2 orientation, double size, int health) {
 	Object obj = malloc(sizeof(*obj));
 	obj->type = type;
 	obj->position = position;
@@ -116,6 +115,10 @@ State state_create(Levels level, GlobalStats stats) {
 	state->info.tp_core = false;
 	state->info.hide_core = false;
 	
+	state->info.coreSpawnTimer = 0.0f;
+	state->info.coreTPTimer = 0.0f;
+	state->info.coreHideTimer = 0.0f;
+
 	state->info.rewardMessages = list_create(NULL);
 	state->info.eliminate = false;
 	state->info.hol = false;
@@ -352,6 +355,8 @@ void state_update(State state, KeyState keys, Menu menu) {
 		
 		//printf("you are playing level %d\n", state_info(state)->level_number);
 
+		//printf("Hey, spaceship pos is %f and %f\n", state->info.spaceship->position.x, state->info.spaceship->position.y);
+
 		Levels level = state->level;
 		//Ανανέωση θέσης αντικειμένων και διαστημόπλοιου.
 		//Δημιουργεί κιόλας, άμα χρειάζονται, αστεροειδείς "κοντά" στο διαστημόπλοιο.
@@ -397,6 +402,7 @@ void state_update(State state, KeyState keys, Menu menu) {
 
 		if (state_info(state)->spawn_core && !state_info(state)->core && !state_info(state)->win) {
 			
+			//printf("SPAWING CORE\n!!!");
 			Vector2 position = vec2_add(
 				state->info.spaceship->position,
 				vec2_from_polar(
@@ -424,29 +430,39 @@ void state_update(State state, KeyState keys, Menu menu) {
 
 			state_info(state)->isCoreHidden = false;
 			state_info(state)->tp_core = false;
+
+			state_info(state)->coreHideTimer = 0.0f;
+			state_info(state)->coreTPTimer = 0.0f;
 		}
 
 		if (state_info(state)->hide_core && !state_info(state)->isCoreHidden && state_info(state)->core && !state_info(state)->win) {
-			core->type = HIDDEN;
-			state_info(state)->hide_core = false;
-			state_info(state)->isCoreHidden = true;
+			if (core != NULL) {
+				//printf("HIDING CORE\n!!!");
+				core->type = HIDDEN;
+				state_info(state)->hide_core = false;
+				state_info(state)->isCoreHidden = true;
+			}
 		}
 
 
 		if (state_info(state)->tp_core && state_info(state)->core && !state_info(state)->win) {
-			Vector2 position = vec2_add(
-				state->info.spaceship->position,
-				vec2_from_polar(
-					randf(100, 300),	// απόσταση
-					randf(0, 2*PI)									// κατεύθυνση
-				)
-			);
+			if (core != NULL) {
+				//printf("TPING CORE\n!!!");
 
-			core->position = position;
-			core->type = CORE;
+				Vector2 position = vec2_add(
+					state->info.spaceship->position,
+					vec2_from_polar(
+						randf(100, 300),	// απόσταση
+						randf(0, 2*PI)									// κατεύθυνση
+					)
+				);
 
-			state_info(state)->isCoreHidden = false;
-			state_info(state)->tp_core = false;
+				core->position = position;
+				core->type = CORE;
+
+				state_info(state)->isCoreHidden = false;
+				state_info(state)->tp_core = false;
+			}
 		}
 
 		//Έλεγχος για όταν κάποιο κουμπί είναι πατημένο.
@@ -518,21 +534,19 @@ void state_update(State state, KeyState keys, Menu menu) {
 
 						switch (state_info(state)->level_number) {
 						case 1:
-							gs_player_info(state->stats)->coins -= 30;
-							break;
-						case 2:
-							gs_player_info(state->stats)->coins -= 60;
-							break;
-						case 3:
-							gs_player_info(state->stats)->coins -= 125;
-							break;
-						case 4:
 							gs_player_info(state->stats)->coins -= 10;
 							break;
+						case 2:
+							gs_player_info(state->stats)->coins -= 50;
+							break;
+						case 3:
+							gs_player_info(state->stats)->coins -= 100;
+							break;
+						case 4:
+							gs_player_info(state->stats)->coins -= 20;
+							break;
 						}
-
-
-						gs_player_info(state->stats)->spaceship_hp = gs_store_info(state->stats)->spaceship_hp;
+						gs_player_info(state->stats)->spaceship_hp = gs_store_info(state->stats)->spaceship_hp/2;
 					}
 
 					free(obj);

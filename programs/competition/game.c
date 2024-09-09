@@ -15,6 +15,7 @@
 #include "menu.h"
 #include "level.h"
 #include "global_stats.h"
+#include "boss_fight.h"
 
 State st_level1;
 State st_level2;
@@ -23,7 +24,7 @@ State st_level4;
 
 State eliminate;
 State hol; //(hol = higher or lower)
-State boss;
+BossState boss_state;
 
 Levels level1;
 Levels level2;
@@ -38,13 +39,10 @@ GlobalStats stats;
 Gun gamble;
 
 int selected = 1;
+int confirm_out = 0;
 
 float messageTimer = 0.0f;       	// Timer for how long the message has been displayed
 const float displayDuration = 0.8f; // Duration to display the message (in seconds)
-
-float coreSpawnTimer = 0.0f;
-float coreHideTimer = 0.0f;
-float coreTPTimer = 0.0f;
 
 const float coreSpawnDelay = 10.0f;
 
@@ -57,6 +55,9 @@ bool reset_elimate = false;
 bool play_hol = false;
 bool playing_hol = false;
 bool reset_hol = false;
+
+bool play_boss = false;
+bool boss_reset = false;
 
 void UpdateUserInput() {
 
@@ -109,19 +110,29 @@ void menu_update() {
 	if (IsKeyPressed(KEY_LEFT_ALT)) {
 
 		if (active_menu(menu) != 1 || get_page(menu) <= 6) {
-			if (!play) {
+			if (!play && !play_boss) {
 				set_active_menu(menu, 0);
 				set_page(menu, 1);
 				set_selected(menu, selected);
 				//selected = 1;
+			} else if (play_boss) {
+				if (confirm_out == 0) {
+					confirm_out++;
+				} else if (confirm_out == 1) {
+					set_page(menu, 5);
+					boss_reset = true;
+					confirm_out = 0;
+					play_boss = false;
+				}
 			} else {
 				set_page(menu, state_info(state)->level_number);
 				play = false;
 			}
+
 		}
 		else {
-			gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->prev_gun;
 			if (play_eliminate) {
+				gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->prev_gun;
 				set_page(menu, state_info(state)->level_number+1);
 				playing_eliminate = true;
 				play_eliminate = false;
@@ -132,6 +143,7 @@ void menu_update() {
 					playing_eliminate = false;
 				}
 			} else if (play_hol) {
+				gs_guns_info(stats)->selected_gun = gs_guns_info(stats)->prev_gun;
 				set_page(menu, state_info(state)->level_number+1);
 				playing_hol = true;
 				play_hol = false;
@@ -141,7 +153,7 @@ void menu_update() {
 					reset_hol = true;
 					playing_hol = false;
 				}
-			} else
+			} else 
 				set_page(menu, 6);
 		}
 	}
@@ -413,9 +425,21 @@ void menu_update() {
 				}
 				break;
 			case 5:
-				if (gs_levels_info(stats)->level4 == 1) {
-					// state = boss;
-					// play = true;
+				if (gs_levels_info(stats)->level5 == 1 || gs_levels_info(stats)->level5 == 2) {
+
+					if (boss_state == NULL) {
+						boss_state = boss_state_create(stats);
+					}
+					
+					if (boss_reset) {
+						boss_state_destroy(boss_state);
+						boss_state = boss_state_create(stats);
+						boss_reset = false;
+					}
+
+					play_boss = true;
+
+					//printf("Hey that worked 1!\n");
 				}
 				break;
 			//Γιατί όχι το παρακάτω case εδώ αλλά στο τέλος αυτής της if;
@@ -506,9 +530,6 @@ void check_win() {
 			gs_levels_info(stats)->level4++;
 			gs_levels_info(stats)->level5++;
 			break;
-		case 5:
-			gs_levels_info(stats)->level5++;
-			break;
 		}
 		
 		state_info(state)->win = false;
@@ -516,43 +537,52 @@ void check_win() {
 
 }
 
+void check_boss_win() {
+	
+	if(boss_state_info(boss_state)->win && state_info(state)->paused) {
+		gs_levels_info(stats)->level5++;
+	}
 
-void check_coreTime() {
+}
 
-	if (!state_info(state)->win && (!state_info(state)->paused || IsKeyDown(KEY_N))) {
+void check_coreTime(State state) {
+
+	if (state != NULL) {
+		if (!state_info(state)->win && (!state_info(state)->paused || IsKeyDown(KEY_N))) {
 
 		if (!state_info(state)->core)
-			coreSpawnTimer += GetFrameTime();
+			state_info(state)->coreSpawnTimer += GetFrameTime();
 		
-		if (coreSpawnTimer > coreSpawnDelay) {
+		if (state_info(state)->coreSpawnTimer > coreSpawnDelay) {
 			state_info(state)->spawn_core = true;
-			coreSpawnTimer = 0.0f;
+			state_info(state)->coreSpawnTimer = 0.0f;
 		}
 		
 		if (state_info(state)->core) {
 
 			if (!state_info(state)->isCoreHidden)
-				coreHideTimer += GetFrameTime();
+				state_info(state)->coreHideTimer += GetFrameTime();
 			
 			if (state_info(state)->isCoreHidden)
-				coreTPTimer += GetFrameTime();
+				state_info(state)->coreTPTimer += GetFrameTime();
 		}
 
 		if (state_info(state)->isCoreHidden) 
-			coreHideTimer = 0.0f;
+			state_info(state)->coreHideTimer = 0.0f;
 
-		if (coreHideTimer > 6.0f) 
+		if (state_info(state)->coreHideTimer > 6.0f) 
 			state_info(state)->hide_core = true;	
 
-		if (coreTPTimer > 4.0f) {
+		if (state_info(state)->coreTPTimer > 4.0f) {
 			state_info(state)->tp_core = true;
-			coreTPTimer = 0.0f;
+			state_info(state)->coreTPTimer = 0.0f;
 		}
-	}
-	else if (!state_info(state)->paused || IsKeyDown(KEY_N)) {
-		coreSpawnTimer = 0.0f;
-		coreHideTimer = 0.0f;
-		coreTPTimer = 0.0f;
+
+		} else if (!state_info(state)->paused || IsKeyDown(KEY_N)) {
+			state_info(state)->coreSpawnTimer = 0.0f;
+			state_info(state)->coreHideTimer = 0.0f;
+			state_info(state)->coreTPTimer = 0.0f;
+		}
 	}
 }	
 
@@ -578,17 +608,27 @@ void update_and_draw() {
 	menu_update();
 
 	if (play) {
+		//printf("I am good 1\n");
 		state_update(state, &keys, menu);	
+		//printf("I am good 2\n");
 		check_drawCoinsReward();
-		check_coreTime();
+		//printf("I am good 3\n");
+		check_coreTime(state);
+		//printf("I am good 4\n");
 		check_win();
+		//printf("I am good 5\n");
 		interface_draw_frame(state, stats);
+		//printf("I am good 6\n");
 	} else if (play_eliminate) {
 		state_update_eliminate(state, &keys, menu);	
 		interface_draw_frame(state, stats);
 	} else if (play_hol) {
 		state_update_hol(state, &keys, menu);
 		interface_draw_frame(state, stats);
+	} else if (play_boss) {
+		boss_state_update(boss_state, &keys, menu);
+		check_boss_win();
+		interface_draw_boss_frame(boss_state, stats);
 	}
  	else
 		interface_draw_menu(menu, state, stats);
@@ -606,7 +646,8 @@ int main() {
 	//For testing
 	// gs_levels_info(stats)->level2 = 2;
 	// gs_levels_info(stats)->level3 = 1;
-	// gs_levels_info(stats)->level4 = 1;
+	//gs_levels_info(stats)->level4 = 2;
+	//gs_levels_info(stats)->level5 = 1;
 
 	// Η κλήση αυτή καλεί συνεχόμενα την update_and_draw μέχρι ο χρήστης να κλείσει το παράθυρο
 	start_main_loop(update_and_draw);

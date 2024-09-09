@@ -33,3 +33,12 @@ double vec2_distance(Vector2 vec1, Vector2 vec2) {
 Vector2 vec2_from_polar(double length, double angle) {
 	return vec2_scale( vec2_rotate((Vector2){0, 1}, angle), length);
 }
+
+Vector2 vec2_normalize(Vector2 vec) {
+	double length = sqrt(vec.x * vec.x + vec.y * vec.y);
+	
+	if (length == 0)
+		return (Vector2){0,0};
+
+	return (Vector2){vec.x / length, vec.y / length};
+}

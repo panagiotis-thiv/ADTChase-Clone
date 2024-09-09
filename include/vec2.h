@@ -32,3 +32,6 @@ double vec2_distance(Vector2 vec1, Vector2 vec2);
 // Επιστρέφει ένα διάνυσμα με μήκος length και γωνία angle.
 
 Vector2 vec2_from_polar(double length, double angle);
+
+//Επιστρέφει ένα διάνυσμα με την ίδια κατεύθυνση με το vec αλλά με μήκος 1
+Vector2 vec2_normalize(Vector2 vec);

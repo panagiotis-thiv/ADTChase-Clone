@@ -8,6 +8,7 @@
 #include "vec2.h"
 #include "menu.h"
 #include "global_stats.h"
+#include "boss_fight.h"
 
 
 // Assets
@@ -908,4 +909,143 @@ void interface_draw_menu(Menu menu, State state, GlobalStats stats) {
 	
 	EndDrawing();
 
+}
+
+
+Vector2 boss_cartToRay(BossState state, Vector2 vec) {
+
+	Vector2 rayCenter = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
+	//Vector2 spaceshipPos = boss_state_info(state)->spaceship->position;
+	
+	//return (Vector2){rayCenter.x - spaceshipPos.x + vec.x, rayCenter.y - (spaceshipPos.y * (-1)) + (vec.y * (-1))};
+	return (Vector2){rayCenter.x + vec.x, rayCenter.y + (vec.y * (-1))};
+}	
+
+
+//Boss State Interface
+
+void interface_draw_boss_frame(BossState state, GlobalStats stats) {
+
+	UpdateMusicStream(background_music);
+	BeginDrawing();
+	ClearBackground(BLACK);
+
+	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+	
+	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
+	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
+
+	float rotation = atan2(boss_state_info(state)->spaceship->orientation.y, boss_state_info(state)->spaceship->orientation.x *(-1)) * RAD2DEG;
+
+	DrawTexturePro(spaceship_img,spaceshipRectangle,(Rectangle){boss_state_info(state)->spaceship->position.x, boss_state_info(state)->spaceship->position.y, spaceshipRectangle.width,spaceshipRectangle.height},
+				   spaceshipCenter,rotation,WHITE);
+
+    float bossRotation = atan2(boss_state_binfo(state)->spaceship->orientation.y, boss_state_binfo(state)->spaceship->orientation.x * (-1)) * RAD2DEG;
+
+    DrawTexturePro(spaceship_img, spaceshipRectangle, (Rectangle){ boss_state_binfo(state)->spaceship->position.x,  boss_state_binfo(state)->spaceship->position.y, spaceshipRectangle.width, spaceshipRectangle.height},
+                   spaceshipCenter, bossRotation, RED);
+
+	//Boss Health Bar
+	float health_percentage = (float)boss_state_binfo(state)->spaceship->health / 500;
+    
+	float border = 2; 
+
+	DrawRectangle(220 - border, 20- border, 
+                  500 + 2 * border, 30 + 2 * border, RAYWHITE);
+
+    DrawRectangle(220, 20, 500, 30, DARKGRAY);
+    
+	if (health_percentage > 0.7) 
+		DrawRectangle(220, 20, 500 * health_percentage, 30, LIME);
+	else if (health_percentage > 0.4) 
+		DrawRectangle(220, 20, 500 * health_percentage, 30, ORANGE);
+	else
+		DrawRectangle(220, 20, 500 * health_percentage, 30, RED);
+
+
+	Vector2 top_left = {boss_state_info(state)->spaceship->position.x + ((3*SCREEN_WIDTH)*(-1)), boss_state_info(state)->spaceship->position.y + (3*SCREEN_HEIGHT)};
+	Vector2 bottom_right = {boss_state_info(state)->spaceship->position.x + (3*SCREEN_WIDTH), boss_state_info(state)->spaceship->position.y + ((3*SCREEN_HEIGHT)*(-1))};
+
+	List objects = boss_state_objects(state, top_left, bottom_right);
+
+	for (ListNode node = list_first(objects); node != LIST_EOF; node = list_next(objects, node)) {
+		Object obj = list_node_value(objects, node);
+
+		if (obj->type == ASTEROID) {
+			DrawCircleLines(obj->position.x, obj->position.y, obj->size/2, LIGHTGRAY);
+		} else if (obj->type == BULLET) {
+			if (obj->orientation.x != 20)
+				DrawCircle(obj->position.x, obj->position.y, obj->size, LIME);
+			else
+				DrawCircle(obj->position.x, obj->position.y, obj->size, RED);
+		}
+
+	}
+	
+	Rectangle coinRectangle = {0,0,coin.width,coin.height};
+	Vector2 coinCenter = {coin.width / 2, coin.height/2};
+
+	if (gs_player_info(stats)->coins >= 100)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){130, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else if (gs_player_info(stats)->coins >= 20)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){80, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else
+		DrawTexturePro(coin, coinRectangle, (Rectangle){70, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+
+	DrawText(TextFormat("%d", gs_player_info(stats)->coins), 10, 10, 40, GRAY);
+	DrawFPS(SCREEN_WIDTH - 80, 0);
+
+	if (boss_state_info(state)->drawCoinsReward) {
+		Vector2 coinPos = boss_cartToRay(state, boss_state_info(state)->coinsPos);
+		DrawText(TextFormat("+ %d", boss_state_info(state)->coinsReward), coinPos.x, coinPos.y, 20, GOLD);
+	}
+
+	Rectangle heartRectangle = {0,0,heart.width,heart.height};
+	Vector2 heartCenter = {heart.width / 2, heart.height/2};	
+
+	DrawTexturePro(heart, heartRectangle, (Rectangle){SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20, heartRectangle.width,heartRectangle.height}, heartCenter, 0, WHITE);
+
+	if (gs_store_info(stats)->spaceship_hp >= 100)
+		DrawText(TextFormat("%d / %d", gs_player_info(stats)->spaceship_hp, gs_store_info(stats)->spaceship_hp), SCREEN_WIDTH - 138, SCREEN_HEIGHT - 30, 20, GRAY);
+	else if (gs_store_info(stats)->spaceship_hp >= 500)
+		DrawText(TextFormat("%d / %d", gs_player_info(stats)->spaceship_hp, gs_store_info(stats)->spaceship_hp), SCREEN_WIDTH - 155, SCREEN_HEIGHT - 30, 20, GRAY);
+	else
+		DrawText(TextFormat("%d / %d", gs_player_info(stats)->spaceship_hp, gs_store_info(stats)->spaceship_hp), SCREEN_WIDTH - 120, SCREEN_HEIGHT - 30, 20, GRAY);
+
+	if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->pistol) {
+		DrawText(TextFormat("Pistol: %d / 50 BULLETS", gs_guns_info(stats)->pistol->bullets), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+	} else if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->rifle) {
+		DrawText(TextFormat("Rifle: %d / 100 BULLETS", gs_guns_info(stats)->rifle->bullets), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+	} else if (gs_guns_info(stats)->selected_gun == gs_guns_info(stats)->sniper) {
+		DrawText(TextFormat("Sniper: %d / 25 BULLETS", gs_guns_info(stats)->sniper->bullets), SCREEN_WIDTH - 580, SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+	}
+
+	
+	if (boss_state_info(state)->paused) {
+		PauseMusicStream(background_music);
+
+		if (boss_state_info(state)->win) {
+			DrawText(
+				"Well, well, well... YOU WON GG!!!",
+				GetScreenWidth() / 2 - MeasureText("Well, well, well... YOU WON GG!!!", 20) / 2,
+				GetScreenHeight() / 2 - 50, 20, GRAY
+			);
+		} else if (boss_state_binfo(state)->lost) {
+			DrawText(
+				"YOU DIED!!!!!!!!!!! PRESS [ALT] TWICE TO EXIT",
+				GetScreenWidth() / 2 - MeasureText("YOU LOST!!!!!!!!!!! PRESS [ALT] TWICE TO EXIT", 20) / 2,
+				GetScreenHeight() / 2 - 50, 20, GRAY
+			);
+		} else {
+			DrawText(
+				"PRESS [P] TO CONTINUE OR [ALT] TWICE TO EXIT\n(EXIT MEANS YOU WILL LOSE ALL PROGRESS)",
+				GetScreenWidth() / 2 - MeasureText("PRESS [P] TO CONTINUE OR [ALT] TWICE TO EXIT\n(EXIT MEANS YOU WILL LOSE ALL PROGRESS)", 20) / 2,
+				GetScreenHeight() / 2 - 50, 20, GRAY
+			);
+		}
+	} 
+	else 
+		ResumeMusicStream(background_music);
+
+	EndDrawing();
 }
