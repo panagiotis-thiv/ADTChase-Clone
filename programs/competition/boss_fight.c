@@ -212,9 +212,6 @@ void boss_state_update(BossState boss_state, KeyState keys, Menu menu) {
 
 	if (boss_state->info.paused == false) {
 
-		//Ανανέωση θέσης αντικειμένων και διαστημόπλοιου.
-		//Δημιουργεί κιόλας, άμα χρειάζονται, αστεροειδείς "κοντά" στο διαστημόπλοιο.
-
 		Vector2 top_left = (Vector2){40,625};
 		Vector2 bottom_right = (Vector2){850,70};
 
@@ -312,7 +309,7 @@ void boss_state_update(BossState boss_state, KeyState keys, Menu menu) {
 
 			if (boss_state->b_info.next_bullet == 0) {
 				Vector2 target = vec2_normalize(vec2_add(boss_state->info.spaceship->position, vec2_scale(boss_state->b_info.spaceship->position, -1)));
-				Vector2 speed = vec2_scale(target, BULLET_SPEED);				
+				Vector2 speed = vec2_scale(target, 4);				
 				Vector2 position = boss_state->b_info.spaceship->position;
 
 				Object bullet = create_object(
@@ -388,7 +385,7 @@ void boss_state_update(BossState boss_state, KeyState keys, Menu menu) {
 			//Boss Shooting
 			if (boss_state->b_info.next_bullet == 0) {
 				Vector2 target = vec2_normalize(vec2_add(boss_state->info.spaceship->position, vec2_scale(boss_state->b_info.spaceship->position, -1)));
-				Vector2 speed = vec2_scale(target, BULLET_SPEED);				
+				Vector2 speed = vec2_scale(target, 7);				
 				Vector2 position = boss_state->b_info.spaceship->position;
 
 				Object bullet = create_object(

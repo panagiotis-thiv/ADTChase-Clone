@@ -77,6 +77,7 @@ typedef struct state_info {
 	bool isCoreHidden; 				//Άμα το core είναι κρυμμένο.
 
 	bool win; 						//Άμα το core έχει καταστραφεί τότε το state τελειώνει
+	bool won; 						//Άμα έχει ήδη νικήσει το level
 
 	int level_number;
 	

@@ -154,6 +154,7 @@ State state_create_eliminate(GlobalStats stats) {
 	state->info.paused = false;				// Το παιχνίδι ξεκινάει χωρίς να είναι paused.
 	state->next_bullet = 0;					// Σφαίρα επιτρέπεται αμέσως
 	state->info.win = false;
+	state->info.won = false;
 
 	state->info.rewardMessages = list_create(NULL);
 	state->info.eliminate = true;
@@ -400,7 +401,7 @@ void state_update(State state, KeyState keys, Menu menu) {
 
 		//Υλοποίηση αστεροειδή core
 
-		if (state_info(state)->spawn_core && !state_info(state)->core && !state_info(state)->win) {
+		if (state_info(state)->spawn_core && !state_info(state)->core && !state_info(state)->win && !state_info(state)->won) {
 			
 			//printf("SPAWING CORE\n!!!");
 			Vector2 position = vec2_add(
@@ -453,7 +454,7 @@ void state_update(State state, KeyState keys, Menu menu) {
 					state->info.spaceship->position,
 					vec2_from_polar(
 						randf(100, 300),	// απόσταση
-						randf(0, 2*PI)									// κατεύθυνση
+						randf(0, 2*PI)		// κατεύθυνση
 					)
 				);
 
@@ -547,6 +548,9 @@ void state_update(State state, KeyState keys, Menu menu) {
 							break;
 						}
 						gs_player_info(state->stats)->spaceship_hp = gs_store_info(state->stats)->spaceship_hp/2;
+
+						if (gs_player_info(state->stats)->coins < 0)
+							gs_player_info(state->stats)->coins = 0;
 					}
 
 					free(obj);
@@ -561,6 +565,10 @@ void state_update(State state, KeyState keys, Menu menu) {
 
 						if (gs_player_info(state->stats)->spaceship_hp <= 0) {
 							gs_player_info(state->stats)->coins -= 500;
+
+							if (gs_player_info(state->stats)->coins < 0)
+								gs_player_info(state->stats)->coins = 0;
+								
 							gs_player_info(state->stats)->spaceship_hp = gs_store_info(state->stats)->spaceship_hp;
 						}
 

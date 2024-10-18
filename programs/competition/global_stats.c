@@ -38,7 +38,7 @@ GlobalStats gs_create() {
 
 	GlobalStats stats = malloc(sizeof(*stats));
 
-    stats->player.coins = 60;
+    stats->player.coins = 50;
     stats->player.spaceship_hp = 50;
 
     Gun pistol = gs_gun_create(30, 70, 20);

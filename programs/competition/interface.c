@@ -94,13 +94,15 @@ void interface_draw_frame(State state, GlobalStats stats) {
 	
 	Rectangle coinRectangle = {0,0,coin.width,coin.height};
 	Vector2 coinCenter = {coin.width / 2, coin.height/2};
-
-	if (gs_player_info(stats)->coins >= 100)
-		DrawTexturePro(coin, coinRectangle, (Rectangle){130, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
-	else if (gs_player_info(stats)->coins >= 20)
+	
+	if (gs_player_info(stats)->coins < 10)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){60, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else if (gs_player_info(stats)->coins < 100)
 		DrawTexturePro(coin, coinRectangle, (Rectangle){80, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+	else if (gs_player_info(stats)->coins < 1000)
+		DrawTexturePro(coin, coinRectangle, (Rectangle){100, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
 	else
-		DrawTexturePro(coin, coinRectangle, (Rectangle){70, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+		DrawTexturePro(coin, coinRectangle, (Rectangle){130, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
 
 	DrawText(TextFormat("%d", gs_player_info(stats)->coins), 10, 10, 40, GRAY);
 	DrawFPS(SCREEN_WIDTH - 80, 0);
@@ -209,7 +211,7 @@ void interface_draw_frame(State state, GlobalStats stats) {
 
 void draw_main_menu(Menu menu) {
 
-	DrawText("Version: 0.7 | NOT FINISHED", SCREEN_WIDTH/2 - 230, SCREEN_HEIGHT/2 + 300, 33, DARKGREEN);
+	DrawText("Version: 0.9.4 | Playable 80%", SCREEN_WIDTH/2 - 230, SCREEN_HEIGHT/2 + 300, 33, DARKGREEN);
 
 	DrawText("ADTChase", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 300, 70, DARKGREEN);
 
@@ -634,18 +636,16 @@ void draw_store_menu(Menu menu, State state, GlobalStats stats) {
 	Rectangle coinRectangle = {0,0,coin.width,coin.height};
 	Vector2 coinCenter = {coin.width / 2, coin.height/2};
 
-	if (gs_player_info(stats)->coins >= 100) {
-		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
-		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 730, 10, 40, GRAY);
-	}
-	else if (gs_player_info(stats)->coins >= 20) {
-		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
-		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 800, 10, 40, GRAY);
-	}
-	else {
+	DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
+
+	if (gs_player_info(stats)->coins < 10) 
 		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 820, 10, 40, GRAY);
-		DrawTexturePro(coin, coinRectangle, (Rectangle){870, 28, coinRectangle.width,coinRectangle.height}, coinCenter, 0, WHITE);
-	}
+	else if (gs_player_info(stats)->coins < 100) 
+		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 800, 10, 40, GRAY);
+	else if (gs_player_info(stats)->coins < 1000)
+		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 770, 10, 40, GRAY);
+	else 
+		DrawText(TextFormat("%d", gs_player_info(stats)->coins), 750, 10, 40, GRAY);
 	
 	if (get_page(menu) % 2 == 1 && get_page(menu) < 9) {
 

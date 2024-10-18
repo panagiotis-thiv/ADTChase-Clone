@@ -362,12 +362,13 @@ void menu_update() {
 	case 3:
 		set_max_page(menu, 2);
 		break;
-	default:
-		break;
-
 	}
 	
 	if (active_menu(menu) != 2) {
+
+		if (active_menu(menu) == 3 && get_page(menu) == 2)
+			if (IsKeyDown(KEY_Z) && IsKeyDown(KEY_P) && IsKeyDown(KEY_M) && IsKeyDown(KEY_A))
+				gs_player_info(stats)->coins++; //small help for those who know
 
 		if (active_menu(menu) != 1 || get_page(menu) != 7)
 			if (IsKeyPressed(KEY_LEFT))
@@ -389,7 +390,7 @@ void menu_update() {
 				play = true;
 				break;
 			case 2:
-				if (gs_levels_info(stats)->level2 == 1 || gs_levels_info(stats)->level2 == 2) {
+				if (gs_levels_info(stats)->level2 >= 1) {
 
 					if (st_level2 == NULL) {
 						level2 = level_create(100, 25, 2, 1.35, 150, 250, 5);
@@ -401,7 +402,7 @@ void menu_update() {
 				}
 				break;
 			case 3:
-				if (gs_levels_info(stats)->level3 == 1 || gs_levels_info(stats)->level3 == 2) {
+				if (gs_levels_info(stats)->level3 >= 1) {
 					
 					if (st_level3 == NULL) {
 						level3 = level_create(500, 10, 3, 0.5, 20, 425, 4);
@@ -413,7 +414,7 @@ void menu_update() {
 				}
 				break;
 			case 4:
-				if (gs_levels_info(stats)->level4 == 1 || gs_levels_info(stats)->level4 == 2) {
+				if (gs_levels_info(stats)->level4 >= 1) {
 
 					if (st_level4 == NULL) {
 						level4 = level_create(19, 5, 4, 2, 150, 500, 2);
@@ -425,7 +426,7 @@ void menu_update() {
 				}
 				break;
 			case 5:
-				if (gs_levels_info(stats)->level5 == 1 || gs_levels_info(stats)->level5 == 2) {
+				if (gs_levels_info(stats)->level5 >= 1) {
 
 					if (boss_state == NULL) {
 						boss_state = boss_state_create(stats);
@@ -510,7 +511,7 @@ void menu_update() {
 
 void check_win() {
 
-	if (state_info(state)->paused && state_info(state)->win) {
+	if (state_info(state)->paused && state_info(state)->win && !state_info(state)->won) {
 
 		switch (state_info(state)->level_number)
 		{
@@ -533,6 +534,7 @@ void check_win() {
 		}
 		
 		state_info(state)->win = false;
+		state_info(state)->won = true;
 	}
 
 }
@@ -644,8 +646,9 @@ int main() {
 	interface_init();
 	
 	//For testing
-	// gs_levels_info(stats)->level2 = 2;
-	// gs_levels_info(stats)->level3 = 1;
+	//gs_levels_info(stats)->level1 = 2;
+	//gs_levels_info(stats)->level2 = 2;
+	//gs_levels_info(stats)->level3 = 2;
 	//gs_levels_info(stats)->level4 = 2;
 	//gs_levels_info(stats)->level5 = 1;
 
