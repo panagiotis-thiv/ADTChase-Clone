@@ -58,8 +58,11 @@ void interface_draw_frame(State state, GlobalStats stats) {
 	UpdateMusicStream(background_music);
 	BeginDrawing();
 	ClearBackground(BLACK);
+	
+	int current_SCREEN_WIDTH = GetScreenWidth();
+	int current_SCREEN_HEIGHT = GetScreenHeight();
 
-	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+	DrawTexturePro(background, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
 
 	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
 	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
@@ -211,7 +214,7 @@ void interface_draw_frame(State state, GlobalStats stats) {
 
 void draw_main_menu(Menu menu) {
 
-	DrawText("Version: 0.9.4 | Playable 80%", SCREEN_WIDTH/2 - 230, SCREEN_HEIGHT/2 + 300, 33, DARKGREEN);
+	DrawText("Version: 0.9.5 | Playable 80%", SCREEN_WIDTH/2 - 230, SCREEN_HEIGHT/2 + 300, 33, DARKGREEN);
 
 	DrawText("ADTChase", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 300, 70, DARKGREEN);
 
@@ -889,7 +892,10 @@ void interface_draw_menu(Menu menu, State state, GlobalStats stats) {
 	BeginDrawing();
 	ClearBackground(BLACK);
 
-	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+	int current_SCREEN_WIDTH = GetScreenWidth();
+	int current_SCREEN_HEIGHT = GetScreenHeight();
+
+	DrawTexturePro(background, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
 
 	switch (active_menu(menu)) {
 	case 0:
@@ -930,7 +936,10 @@ void interface_draw_boss_frame(BossState state, GlobalStats stats) {
 	BeginDrawing();
 	ClearBackground(BLACK);
 
-	DrawTexturePro(background, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Rectangle){0,0,SCREEN_WIDTH,SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
+	int current_SCREEN_WIDTH = GetScreenWidth();
+	int current_SCREEN_HEIGHT = GetScreenHeight();
+
+	DrawTexturePro(background, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Rectangle){0,0,current_SCREEN_WIDTH,current_SCREEN_HEIGHT}, (Vector2){0,0}, 0, DARKGRAY);
 	
 	Rectangle spaceshipRectangle = {0,0,spaceship_img.width,spaceship_img.height};
 	Vector2 spaceshipCenter = {spaceship_img.width / 2, spaceship_img.height/2};
