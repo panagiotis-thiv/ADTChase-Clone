@@ -370,14 +370,20 @@ void menu_update() {
 			if (IsKeyDown(KEY_Z) && IsKeyDown(KEY_P) && IsKeyDown(KEY_M) && IsKeyDown(KEY_A))
 				gs_player_info(stats)->coins++; //small help for those who know
 
-		if (active_menu(menu) != 1 || get_page(menu) != 7)
-			if (IsKeyPressed(KEY_LEFT))
-				set_page_prev(menu);
+
+		if (!play_hol && !play_eliminate) {
+
+			if (active_menu(menu) != 1 || get_page(menu) != 7)
+				if (IsKeyPressed(KEY_LEFT))
+					set_page_prev(menu);
 
 
-		if (active_menu(menu) != 1 || get_page(menu) != 6)
-			if (IsKeyPressed(KEY_RIGHT))
-				set_page_next(menu);
+			if (active_menu(menu) != 1 || get_page(menu) != 6)
+				if (IsKeyPressed(KEY_RIGHT))
+					set_page_next(menu);
+
+		}
+
 
 	}
 
@@ -646,9 +652,9 @@ int main() {
 	interface_init();
 	
 	//For testing
-	//gs_levels_info(stats)->level1 = 2;
-	//gs_levels_info(stats)->level2 = 2;
-	//gs_levels_info(stats)->level3 = 2;
+	gs_levels_info(stats)->level1 = 2;
+	gs_levels_info(stats)->level2 = 2;
+	gs_levels_info(stats)->level3 = 1;
 	//gs_levels_info(stats)->level4 = 2;
 	//gs_levels_info(stats)->level5 = 1;
 
