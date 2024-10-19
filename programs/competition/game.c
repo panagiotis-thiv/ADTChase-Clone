@@ -652,9 +652,9 @@ int main() {
 	interface_init();
 	
 	//For testing
-	gs_levels_info(stats)->level1 = 2;
-	gs_levels_info(stats)->level2 = 2;
-	gs_levels_info(stats)->level3 = 1;
+	//gs_levels_info(stats)->level1 = 2;
+	//gs_levels_info(stats)->level2 = 2;
+	//gs_levels_info(stats)->level3 = 1;
 	//gs_levels_info(stats)->level4 = 2;
 	//gs_levels_info(stats)->level5 = 1;
 
